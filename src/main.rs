@@ -1,6 +1,7 @@
 use regex::Regex;
 use replace_in_file::{
-    init_command, validate_conflicting_options, validate_file, validate_pattern,
+    init_command, verify_file_path_exists, verify_has_no_conflicting_options,
+    verify_is_positive_int, verify_is_valid_regex,
 };
 use std::fs;
 
@@ -18,17 +19,29 @@ fn main() {
     let replacement = matches.get_one::<String>("replacement").unwrap();
     let file = matches.get_one::<String>("file").unwrap();
     let replace_all = matches.get_flag("all");
-    let every_nth = matches
-        .get_one::<String>("every_nth")
-        .map(|s| s.parse::<usize>().unwrap());
+    let nth = matches.get_one::<String>("nth").map(|s| {
+        verify_is_positive_int(s);
+        s.parse::<usize>().unwrap()
+    });
+    let every_nth = matches.get_one::<String>("every_nth").map(|s| {
+        verify_is_positive_int(s);
+        s.parse::<usize>().unwrap()
+    });
 
     // Validate arguments
-    validate_pattern(pattern);
-    validate_file(file);
-    validate_conflicting_options(vec![(
-        if replace_all { Some("all") } else { None },
-        every_nth.map(|_| "every_nth"),
-    )]);
+    verify_is_valid_regex(pattern);
+    verify_file_path_exists(file);
+    verify_has_no_conflicting_options(vec![
+        (
+            if replace_all { Some("all") } else { None },
+            every_nth.map(|_| "every_nth"),
+        ),
+        (
+            if replace_all { Some("all") } else { None },
+            nth.map(|_| "nth"),
+        ),
+        (every_nth.map(|_| "every_nth"), nth.map(|_| "nth")),
+    ]);
 
     // Process arguments
     let content = fs::read_to_string(file).expect(&format!("Could not read file: {}", file));
@@ -37,6 +50,20 @@ fn main() {
     // Perform replacement
     let result = if replace_all {
         re.replace_all(&content, replacement)
+    } else if let Some(nth) = nth {
+        if nth == 0 {
+            content.into()
+        } else {
+            let mut count = 0;
+            re.replace_all(&content, |caps: &regex::Captures| {
+                count += 1;
+                if count == nth {
+                    replacement.to_string()
+                } else {
+                    caps[0].to_string()
+                }
+            })
+        }
     } else if let Some(every_nth) = every_nth {
         if every_nth == 0 {
             content.into()
@@ -285,6 +312,160 @@ mod tests {
             .arg("2");
         cmd.assert().failure().stderr(contains(
             "Error: Conflicting options provided: \"all\", \"every_nth\"",
+        ));
+    }
+
+    #[test]
+    fn test_no_replacements_with_nth_zero() {
+        let file = NamedTempFile::new().unwrap();
+        fs::write(file.path(), "pattern pattern pattern pattern").unwrap();
+
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg(file.path())
+            .arg("--nth")
+            .arg("0");
+        cmd.assert().success();
+
+        let content = fs::read_to_string(file.path()).unwrap();
+        assert_eq!(content, "pattern pattern pattern pattern");
+    }
+
+    #[test]
+    fn test_first_match_is_replaced_with_nth_one() {
+        let file = NamedTempFile::new().unwrap();
+        fs::write(file.path(), "pattern pattern pattern pattern").unwrap();
+
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg(file.path())
+            .arg("--nth")
+            .arg("1");
+        cmd.assert().success();
+
+        let content = fs::read_to_string(file.path()).unwrap();
+        assert_eq!(content, "replacement pattern pattern pattern");
+    }
+
+    #[test]
+    fn test_second_match_is_replaced_with_nth_two() {
+        let file = NamedTempFile::new().unwrap();
+        fs::write(file.path(), "pattern pattern pattern pattern").unwrap();
+
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg(file.path())
+            .arg("--nth")
+            .arg("2");
+        cmd.assert().success();
+
+        let content = fs::read_to_string(file.path()).unwrap();
+        assert_eq!(content, "pattern replacement pattern pattern");
+    }
+
+    #[test]
+    fn test_nth_option_does_not_accept_negative_numbers() {
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg("test.txt")
+            .arg("--nth=-1");
+        cmd.assert().failure().stderr(contains(
+            "Error: The value given is not a positive integer: -1",
+        ));
+    }
+
+    #[test]
+    fn test_every_nth_option_does_not_accept_negative_numbers() {
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg("test.txt")
+            .arg("--every_nth=-1");
+        cmd.assert().failure().stderr(contains(
+            "Error: The value given is not a positive integer: -1",
+        ));
+    }
+
+    #[test]
+    fn test_nth_option_does_not_accept_floats() {
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg("test.txt")
+            .arg("--nth")
+            .arg("1.5");
+        cmd.assert().failure().stderr(contains(
+            "Error: The value given is not a positive integer: 1.5",
+        ));
+    }
+
+    #[test]
+    fn test_every_nth_option_does_not_accept_floats() {
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg("test.txt")
+            .arg("--every_nth")
+            .arg("1.5");
+        cmd.assert().failure().stderr(contains(
+            "Error: The value given is not a positive integer: 1.5",
+        ));
+    }
+
+    #[test]
+    fn test_nth_option_does_not_accept_text() {
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg("test.txt")
+            .arg("--nth")
+            .arg("text");
+        cmd.assert().failure().stderr(contains(
+            "Error: The value given is not a positive integer: text",
+        ));
+    }
+
+    #[test]
+    fn test_every_nth_option_does_not_accept_text() {
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg("test.txt")
+            .arg("--every_nth")
+            .arg("text");
+        cmd.assert().failure().stderr(contains(
+            "Error: The value given is not a positive integer: text",
         ));
     }
 }

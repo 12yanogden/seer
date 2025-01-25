@@ -67,6 +67,13 @@ pub fn init_command() -> Command {
                 .help("Replace every nth match of the pattern")
                 .action(clap::ArgAction::Set),
         )
+        .arg(
+            Arg::new("nth")
+                .long("nth")
+                .value_name("NTH")
+                .help("Replace only the nth match of the pattern")
+                .action(clap::ArgAction::Set),
+        )
 }
 
 /// Validates that the given pattern is a valid regular expression.
@@ -78,10 +85,10 @@ pub fn init_command() -> Command {
 /// # Examples
 ///
 /// ```
-/// use replace_in_file::validate_pattern;
-/// validate_pattern(r"\d+");
+/// use replace_in_file::verify_is_valid_regex;
+/// verify_is_valid_regex(r"\d+");
 /// ```
-pub fn validate_pattern(pattern: &str) {
+pub fn verify_is_valid_regex(pattern: &str) {
     if Regex::new(pattern).is_err() {
         eprintln!(
             "Error: The pattern given is not a valid regular expression: {}",
@@ -100,12 +107,12 @@ pub fn validate_pattern(pattern: &str) {
 /// # Examples
 ///
 /// ```
-/// use replace_in_file::validate_file;
+/// use replace_in_file::verify_file_path_exists;
 /// use tempfile::NamedTempFile;
 /// let file = NamedTempFile::new().unwrap();
-/// validate_file(file.path().to_str().unwrap());
+/// verify_file_path_exists(file.path().to_str().unwrap());
 /// ```
-pub fn validate_file(file: &str) {
+pub fn verify_file_path_exists(file: &str) {
     if !Path::new(file).is_file() {
         eprintln!("Error: The file given does not exist: {}", file);
         std::process::exit(1);
@@ -121,10 +128,10 @@ pub fn validate_file(file: &str) {
 /// # Examples
 ///
 /// ```
-/// use replace_in_file::validate_conflicting_options;
-/// validate_conflicting_options(vec![(Some("value1"), None), (None, Some("value2"))]);
+/// use replace_in_file::verify_has_no_conflicting_options;
+/// verify_has_no_conflicting_options(vec![(Some("value1"), None), (None, Some("value2"))]);
 /// ```
-pub fn validate_conflicting_options(option_pairs: Vec<(Option<&str>, Option<&str>)>) {
+pub fn verify_has_no_conflicting_options(option_pairs: Vec<(Option<&str>, Option<&str>)>) {
     for (opt1, opt2) in option_pairs {
         if opt1.is_some() && opt2.is_some() {
             eprintln!(
@@ -134,5 +141,27 @@ pub fn validate_conflicting_options(option_pairs: Vec<(Option<&str>, Option<&str
             );
             std::process::exit(1);
         }
+    }
+}
+
+/// Validates that the given value is a positive integer.
+///
+/// # Arguments
+///
+/// * `value` - A string slice that holds the value to be validated.
+///
+/// # Examples
+///
+/// ```
+/// use replace_in_file::verify_is_positive_int;
+/// verify_is_positive_int("5");
+/// ```
+pub fn verify_is_positive_int(value: &str) {
+    if value.parse::<usize>().is_err() {
+        eprintln!(
+            "Error: The value given is not a positive integer: {}",
+            value
+        );
+        std::process::exit(1);
     }
 }

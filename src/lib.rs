@@ -1,0 +1,106 @@
+use clap::{Arg, Command};
+use regex::Regex;
+use std::path::Path;
+
+/// Parses command line arguments using the `clap` crate.
+///
+/// # Returns
+///
+/// An `ArgMatches` instance containing the parsed arguments.
+///
+/// # Examples
+///
+/// ```
+/// use replace_in_file::init_command;
+/// use clap::CommandFactory;
+///
+/// let cmd = replace_in_file::init_command();
+/// let matches = cmd.override_usage("replace_in_file --pattern <PATTERN> --replacement <REPLACEMENT> --file <FILE>")
+///     .try_get_matches_from(vec!["replace_in_file", "--pattern", "foo", "--replacement", "bar", "--file", "test.txt"])
+///     .unwrap();
+/// assert_eq!(matches.get_one::<String>("pattern").unwrap(), "foo");
+/// assert_eq!(matches.get_one::<String>("replacement").unwrap(), "bar");
+/// assert_eq!(matches.get_one::<String>("file").unwrap(), "test.txt");
+/// ```
+pub fn init_command() -> Command {
+    Command::new("replace_in_file")
+        .version("1.0")
+        .author("Ryan Ogden <12yanogden@gmail.com>")
+        .about("Replaces matches to a regex in a file with a given string")
+        .arg(
+            Arg::new("pattern")
+                .short('p')
+                .long("pattern")
+                .value_name("PATTERN")
+                .help("The regex pattern to match")
+                .action(clap::ArgAction::Set)
+                .required(true),
+        )
+        .arg(
+            Arg::new("replacement")
+                .short('r')
+                .long("replacement")
+                .value_name("REPLACEMENT")
+                .help("The string to replace matches with")
+                .action(clap::ArgAction::Set)
+                .required(true),
+        )
+        .arg(
+            Arg::new("file")
+                .short('f')
+                .long("file")
+                .value_name("FILE")
+                .help("The path to the file")
+                .action(clap::ArgAction::Set)
+                .required(true),
+        )
+        .arg(
+            Arg::new("all")
+                .long("all")
+                .help("Replace all matches of the pattern")
+                .action(clap::ArgAction::SetTrue),
+        )
+}
+
+/// Validates that the given pattern is a valid regular expression.
+///
+/// # Arguments
+///
+/// * `pattern` - A string slice that holds the regex pattern.
+///
+/// # Examples
+///
+/// ```
+/// use replace_in_file::validate_pattern;
+/// validate_pattern(r"\d+");
+/// ```
+pub fn validate_pattern(pattern: &str) {
+    if Regex::new(pattern).is_err() {
+        eprintln!(
+            "Error: The pattern given is not a valid regular expression: {}",
+            pattern
+        );
+        std::process::exit(1);
+    }
+}
+
+/// Validates that the given file path points to an existing file.
+///
+/// # Arguments
+///
+/// * `file` - A string slice that holds the file path.
+///
+/// # Examples
+///
+/// ```
+/// use replace_in_file::validate_file;
+/// use tempfile::NamedTempFile;
+/// let file = NamedTempFile::new().unwrap();
+/// validate_file(file.path().to_str().unwrap());
+/// ```
+pub fn validate_file(file: &str) {
+    if !Path::new(file).is_file() {
+        eprintln!("Error: The file given does not exist: {}", file);
+        std::process::exit(1);
+    }
+}

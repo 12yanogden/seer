@@ -313,7 +313,7 @@ mod tests {
             .arg("some text")
             .arg("--nth=-1");
         cmd.assert().failure().stderr(contains(
-            "error: invalid value \'-1\' for \'--nth <NTH>\': invalid digit found in string",
+            "error: invalid value \'-1\' for \'--nth <NTH>\': -1 is not in 0..=65535",
         ));
     }
 
@@ -328,7 +328,7 @@ mod tests {
             .arg("some text")
             .arg("--every_nth=-1");
         cmd.assert().failure().stderr(contains(
-            "error: invalid value \'-1\' for \'--every_nth <EVERY_NTH>\': invalid digit found in string",
+            "error: invalid value \'-1\' for \'--every_nth <EVERY_NTH>\': -1 is not in 0..=65535",
         ));
     }
 

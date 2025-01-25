@@ -11,22 +11,22 @@ use std::path::Path;
 /// # Examples
 ///
 /// ```
-/// use replace_in_file::init_command;
+/// use replace::init_command;
 /// use clap::CommandFactory;
 ///
-/// let cmd = replace_in_file::init_command();
-/// let matches = cmd.override_usage("replace_in_file --pattern <PATTERN> --replacement <REPLACEMENT> --file <FILE>")
-///     .try_get_matches_from(vec!["replace_in_file", "--pattern", "foo", "--replacement", "bar", "--file", "test.txt"])
+/// let cmd = replace::init_command();
+/// let matches = cmd.override_usage("replace --pattern <PATTERN> --replacement <REPLACEMENT> --haystack <HAYSTACK>")
+///     .try_get_matches_from(vec!["replace", "--pattern", "foo", "--replacement", "bar", "--haystack", "test string"])
 ///     .unwrap();
 /// assert_eq!(matches.get_one::<String>("pattern").unwrap(), "foo");
 /// assert_eq!(matches.get_one::<String>("replacement").unwrap(), "bar");
-/// assert_eq!(matches.get_one::<String>("file").unwrap(), "test.txt");
+/// assert_eq!(matches.get_one::<String>("haystack").unwrap(), "test string");
 /// ```
 pub fn init_command() -> Command {
-    Command::new("replace_in_file")
+    Command::new("replace")
         .version("1.0")
         .author("Ryan Ogden <12yanogden@gmail.com>")
-        .about("Replaces matches to a regex in a file with a given string")
+        .about("Replaces matches to a regex in a string with a given string")
         .arg(
             Arg::new("pattern")
                 .short('p')
@@ -46,11 +46,10 @@ pub fn init_command() -> Command {
                 .required(true),
         )
         .arg(
-            Arg::new("file")
-                .short('f')
-                .long("file")
-                .value_name("FILE")
-                .help("The path to the file")
+            Arg::new("haystack")
+                .long("haystack")
+                .value_name("HAYSTACK")
+                .help("The string to search within")
                 .action(clap::ArgAction::Set)
                 .required(true),
         )
@@ -85,7 +84,7 @@ pub fn init_command() -> Command {
 /// # Examples
 ///
 /// ```
-/// use replace_in_file::verify_is_valid_regex;
+/// use replace::verify_is_valid_regex;
 /// verify_is_valid_regex(r"\d+");
 /// ```
 pub fn verify_is_valid_regex(pattern: &str) {
@@ -107,7 +106,7 @@ pub fn verify_is_valid_regex(pattern: &str) {
 /// # Examples
 ///
 /// ```
-/// use replace_in_file::verify_file_path_exists;
+/// use replace::verify_file_path_exists;
 /// use tempfile::NamedTempFile;
 /// let file = NamedTempFile::new().unwrap();
 /// verify_file_path_exists(file.path().to_str().unwrap());
@@ -128,7 +127,7 @@ pub fn verify_file_path_exists(file: &str) {
 /// # Examples
 ///
 /// ```
-/// use replace_in_file::verify_has_no_conflicting_options;
+/// use replace::verify_has_no_conflicting_options;
 /// verify_has_no_conflicting_options(vec![(Some("value1"), None), (None, Some("value2"))]);
 /// ```
 pub fn verify_has_no_conflicting_options(option_pairs: Vec<(Option<&str>, Option<&str>)>) {
@@ -153,7 +152,7 @@ pub fn verify_has_no_conflicting_options(option_pairs: Vec<(Option<&str>, Option
 /// # Examples
 ///
 /// ```
-/// use replace_in_file::verify_is_positive_int;
+/// use replace::verify_is_positive_int;
 /// verify_is_positive_int("5");
 /// ```
 pub fn verify_is_positive_int(value: &str) {

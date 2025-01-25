@@ -1,7 +1,5 @@
 use regex::Regex;
-use replace::{
-    init_command, verify_has_no_conflicting_options, verify_is_positive_int, verify_is_valid_regex,
-};
+use replace::{init_command, verify_has_no_conflicting_options, verify_is_valid_regex};
 
 /// The main function that orchestrates the argument parsing, validation, and replacement.
 ///
@@ -17,14 +15,8 @@ fn main() {
     let replacement = matches.get_one::<String>("replacement").unwrap();
     let haystack = matches.get_one::<String>("haystack").unwrap();
     let replace_all = matches.get_flag("all");
-    let nth = matches.get_one::<String>("nth").map(|s| {
-        verify_is_positive_int(s);
-        s.parse::<usize>().unwrap()
-    });
-    let every_nth = matches.get_one::<String>("every_nth").map(|s| {
-        verify_is_positive_int(s);
-        s.parse::<usize>().unwrap()
-    });
+    let nth = matches.get_one::<u16>("nth").copied();
+    let every_nth = matches.get_one::<u16>("every_nth").copied();
 
     // Validate arguments
     verify_is_valid_regex(pattern);
@@ -321,7 +313,7 @@ mod tests {
             .arg("some text")
             .arg("--nth=-1");
         cmd.assert().failure().stderr(contains(
-            "Error: The value given is not a positive integer: -1",
+            "error: invalid value \'-1\' for \'--nth <NTH>\': invalid digit found in string",
         ));
     }
 
@@ -336,7 +328,7 @@ mod tests {
             .arg("some text")
             .arg("--every_nth=-1");
         cmd.assert().failure().stderr(contains(
-            "Error: The value given is not a positive integer: -1",
+            "error: invalid value \'-1\' for \'--every_nth <EVERY_NTH>\': invalid digit found in string",
         ));
     }
 
@@ -352,7 +344,7 @@ mod tests {
             .arg("--nth")
             .arg("1.5");
         cmd.assert().failure().stderr(contains(
-            "Error: The value given is not a positive integer: 1.5",
+            "error: invalid value \'1.5\' for \'--nth <NTH>\': invalid digit found in string",
         ));
     }
 
@@ -368,7 +360,7 @@ mod tests {
             .arg("--every_nth")
             .arg("1.5");
         cmd.assert().failure().stderr(contains(
-            "Error: The value given is not a positive integer: 1.5",
+            "error: invalid value \'1.5\' for \'--every_nth <EVERY_NTH>\': invalid digit found in string",
         ));
     }
 
@@ -384,7 +376,7 @@ mod tests {
             .arg("--nth")
             .arg("text");
         cmd.assert().failure().stderr(contains(
-            "Error: The value given is not a positive integer: text",
+            "error: invalid value \'text\' for \'--nth <NTH>\': invalid digit found in string",
         ));
     }
 
@@ -400,7 +392,7 @@ mod tests {
             .arg("--every_nth")
             .arg("text");
         cmd.assert().failure().stderr(contains(
-            "Error: The value given is not a positive integer: text",
+            "error: invalid value \'text\' for \'--every_nth <EVERY_NTH>\': invalid digit found in string",
         ));
     }
 }

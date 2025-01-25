@@ -1,6 +1,5 @@
 use clap::{Arg, Command};
 use regex::Regex;
-use std::path::Path;
 
 /// Parses command line arguments using the `clap` crate.
 ///
@@ -64,6 +63,7 @@ pub fn init_command() -> Command {
                 .long("every_nth")
                 .value_name("EVERY_NTH")
                 .help("Replace every nth match of the pattern")
+                .value_parser(clap::value_parser!(u16).range(0..))
                 .action(clap::ArgAction::Set),
         )
         .arg(
@@ -71,6 +71,7 @@ pub fn init_command() -> Command {
                 .long("nth")
                 .value_name("NTH")
                 .help("Replace only the nth match of the pattern")
+                .value_parser(clap::value_parser!(u16).range(0..))
                 .action(clap::ArgAction::Set),
         )
 }
@@ -97,27 +98,6 @@ pub fn verify_is_valid_regex(pattern: &str) {
     }
 }
 
-/// Validates that the given file path points to an existing file.
-///
-/// # Arguments
-///
-/// * `file` - A string slice that holds the file path.
-///
-/// # Examples
-///
-/// ```
-/// use replace::verify_file_path_exists;
-/// use tempfile::NamedTempFile;
-/// let file = NamedTempFile::new().unwrap();
-/// verify_file_path_exists(file.path().to_str().unwrap());
-/// ```
-pub fn verify_file_path_exists(file: &str) {
-    if !Path::new(file).is_file() {
-        eprintln!("Error: The file given does not exist: {}", file);
-        std::process::exit(1);
-    }
-}
-
 /// Validates that at least one of the conflicting options in each pair is undefined.
 ///
 /// # Arguments
@@ -140,27 +120,5 @@ pub fn verify_has_no_conflicting_options(option_pairs: Vec<(Option<&str>, Option
             );
             std::process::exit(1);
         }
-    }
-}
-
-/// Validates that the given value is a positive integer.
-///
-/// # Arguments
-///
-/// * `value` - A string slice that holds the value to be validated.
-///
-/// # Examples
-///
-/// ```
-/// use replace::verify_is_positive_int;
-/// verify_is_positive_int("5");
-/// ```
-pub fn verify_is_positive_int(value: &str) {
-    if value.parse::<usize>().is_err() {
-        eprintln!(
-            "Error: The value given is not a positive integer: {}",
-            value
-        );
-        std::process::exit(1);
     }
 }

@@ -6,7 +6,7 @@ use std::path::Path;
 ///
 /// # Returns
 ///
-/// An `ArgMatches` instance containing the parsed arguments.
+/// A `Command` instance containing the parsed arguments.
 ///
 /// # Examples
 ///
@@ -60,6 +60,13 @@ pub fn init_command() -> Command {
                 .help("Replace all matches of the pattern")
                 .action(clap::ArgAction::SetTrue),
         )
+        .arg(
+            Arg::new("every_nth")
+                .long("every_nth")
+                .value_name("EVERY_NTH")
+                .help("Replace every nth match of the pattern")
+                .action(clap::ArgAction::Set),
+        )
 }
 
 /// Validates that the given pattern is a valid regular expression.
@@ -102,5 +109,30 @@ pub fn validate_file(file: &str) {
     if !Path::new(file).is_file() {
         eprintln!("Error: The file given does not exist: {}", file);
         std::process::exit(1);
+    }
+}
+
+/// Validates that at least one of the conflicting options in each pair is undefined.
+///
+/// # Arguments
+///
+/// * `option_pairs` - A list of tuples containing pairs of conflicting option values.
+///
+/// # Examples
+///
+/// ```
+/// use replace_in_file::validate_conflicting_options;
+/// validate_conflicting_options(vec![(Some("value1"), None), (None, Some("value2"))]);
+/// ```
+pub fn validate_conflicting_options(option_pairs: Vec<(Option<&str>, Option<&str>)>) {
+    for (opt1, opt2) in option_pairs {
+        if opt1.is_some() && opt2.is_some() {
+            eprintln!(
+                "Error: Conflicting options provided: {:?}, {:?}",
+                opt1.unwrap(),
+                opt2.unwrap()
+            );
+            std::process::exit(1);
+        }
     }
 }

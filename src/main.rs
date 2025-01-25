@@ -1,5 +1,7 @@
 use regex::Regex;
-use replace_in_file::{init_command, validate_file, validate_pattern};
+use replace_in_file::{
+    init_command, validate_conflicting_options, validate_file, validate_pattern,
+};
 use std::fs;
 
 /// The main function that orchestrates the argument parsing, validation, and replacement.
@@ -16,10 +18,17 @@ fn main() {
     let replacement = matches.get_one::<String>("replacement").unwrap();
     let file = matches.get_one::<String>("file").unwrap();
     let replace_all = matches.get_flag("all");
+    let every_nth = matches
+        .get_one::<String>("every_nth")
+        .map(|s| s.parse::<usize>().unwrap());
 
     // Validate arguments
     validate_pattern(pattern);
     validate_file(file);
+    validate_conflicting_options(vec![(
+        if replace_all { Some("all") } else { None },
+        every_nth.map(|_| "every_nth"),
+    )]);
 
     // Process arguments
     let content = fs::read_to_string(file).expect(&format!("Could not read file: {}", file));
@@ -28,6 +37,22 @@ fn main() {
     // Perform replacement
     let result = if replace_all {
         re.replace_all(&content, replacement)
+    } else if let Some(every_nth) = every_nth {
+        if every_nth == 0 {
+            content.into()
+        } else if every_nth == 1 {
+            re.replace_all(&content, replacement)
+        } else {
+            let mut count = 0;
+            re.replace_all(&content, |caps: &regex::Captures| {
+                count += 1;
+                if count % every_nth == 0 {
+                    replacement.to_string()
+                } else {
+                    caps[0].to_string()
+                }
+            })
+        }
     } else {
         re.replace(&content, replacement)
     };
@@ -156,5 +181,110 @@ mod tests {
 
         let content = fs::read_to_string(file.path()).unwrap();
         assert_eq!(content, "replacement replacement");
+    }
+
+    #[test]
+    fn test_no_replacements_with_every_nth_zero() {
+        let file = NamedTempFile::new().unwrap();
+        fs::write(file.path(), "pattern pattern pattern pattern").unwrap();
+
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg(file.path())
+            .arg("--every_nth")
+            .arg("0");
+        cmd.assert().success();
+
+        let content = fs::read_to_string(file.path()).unwrap();
+        assert_eq!(content, "pattern pattern pattern pattern");
+    }
+
+    #[test]
+    fn test_every_match_is_replaced_with_every_nth_one() {
+        let file = NamedTempFile::new().unwrap();
+        fs::write(file.path(), "pattern pattern pattern pattern").unwrap();
+
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg(file.path())
+            .arg("--every_nth")
+            .arg("1");
+        cmd.assert().success();
+
+        let content = fs::read_to_string(file.path()).unwrap();
+        assert_eq!(content, "replacement replacement replacement replacement");
+    }
+
+    #[test]
+    fn test_every_second_match_is_replaced_with_every_nth_option() {
+        let file = NamedTempFile::new().unwrap();
+        fs::write(file.path(), "pattern pattern pattern pattern").unwrap();
+
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg(file.path())
+            .arg("--every_nth")
+            .arg("2");
+        cmd.assert().success();
+
+        let content = fs::read_to_string(file.path()).unwrap();
+        assert_eq!(content, "pattern replacement pattern replacement");
+    }
+
+    #[test]
+    fn test_every_third_match_is_replaced_with_every_nth_option() {
+        let file = NamedTempFile::new().unwrap();
+        fs::write(
+            file.path(),
+            "pattern pattern pattern pattern pattern pattern",
+        )
+        .unwrap();
+
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg(file.path())
+            .arg("--every_nth")
+            .arg("3");
+        cmd.assert().success();
+
+        let content = fs::read_to_string(file.path()).unwrap();
+        assert_eq!(
+            content,
+            "pattern pattern replacement pattern pattern replacement"
+        );
+    }
+
+    #[test]
+    fn test_all_and_every_nth_options_cannot_be_provided_together() {
+        let file = NamedTempFile::new().unwrap();
+        let mut cmd = Command::cargo_bin("replace_in_file").unwrap();
+        cmd.arg("--pattern")
+            .arg("pattern")
+            .arg("--replacement")
+            .arg("replacement")
+            .arg("--file")
+            .arg(file.path())
+            .arg("--all")
+            .arg("--every_nth")
+            .arg("2");
+        cmd.assert().failure().stderr(contains(
+            "Error: Conflicting options provided: \"all\", \"every_nth\"",
+        ));
     }
 }

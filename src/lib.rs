@@ -122,3 +122,28 @@ pub fn verify_has_no_conflicting_options(option_pairs: Vec<(Option<&str>, Option
         }
     }
 }
+
+/// Finds all matches of the given pattern in the content string.
+///
+/// # Arguments
+///
+/// * `pattern` - A regex pattern to match.
+/// * `content` - The string to search within.
+///
+/// # Returns
+///
+/// A vector of tuples where each tuple contains the start and end indices of a match.
+///
+/// # Examples
+///
+/// ```
+/// use replace::find_matches;
+/// let matches = find_matches(r"\d+", "123 abc 456");
+/// assert_eq!(matches, vec![(0, 3), (8, 11)]);
+/// ```
+pub fn find_matches(pattern: &str, content: &str) -> Vec<(usize, usize)> {
+    let re = Regex::new(pattern).expect(&format!("Invalid regex pattern: {}", pattern));
+    re.find_iter(content)
+        .map(|found_match| (found_match.start(), found_match.end()))
+        .collect()
+}

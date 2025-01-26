@@ -1,5 +1,6 @@
-use regex::Regex;
-use replace::{init_command, verify_has_no_conflicting_options, verify_is_valid_regex};
+use replace::{
+    find_matches, init_command, verify_has_no_conflicting_options, verify_is_valid_regex,
+};
 
 /// The main function that orchestrates the argument parsing, validation, and replacement.
 ///
@@ -32,45 +33,44 @@ fn main() {
         (every_nth.map(|_| "every_nth"), nth.map(|_| "nth")),
     ]);
 
-    // Process arguments
-    let content = haystack.clone();
-    let re = Regex::new(pattern).expect(&format!("Invalid regex pattern: {}", pattern));
+    // Find matches
+    let matches = find_matches(pattern, haystack);
 
     // Perform replacement
     let result = if replace_all {
-        re.replace_all(&content, replacement)
+        let mut result = haystack.to_string();
+        for (start, end) in matches.iter().rev() {
+            result.replace_range(start..end, replacement);
+        }
+        result
     } else if let Some(nth) = nth {
         if nth == 0 {
-            content.into()
+            haystack.to_string()
         } else {
-            let mut count = 0;
-            re.replace_all(&content, |caps: &regex::Captures| {
-                count += 1;
-                if count == nth {
-                    replacement.to_string()
-                } else {
-                    caps[0].to_string()
-                }
-            })
+            let mut result = haystack.to_string();
+            if let Some((start, end)) = matches.get(nth as usize - 1) {
+                result.replace_range(start..end, replacement);
+            }
+            result
         }
     } else if let Some(every_nth) = every_nth {
         if every_nth == 0 {
-            content.into()
-        } else if every_nth == 1 {
-            re.replace_all(&content, replacement)
+            haystack.to_string()
         } else {
-            let mut count = 0;
-            re.replace_all(&content, |caps: &regex::Captures| {
-                count += 1;
-                if count % every_nth == 0 {
-                    replacement.to_string()
-                } else {
-                    caps[0].to_string()
+            let mut result = haystack.to_string();
+            for (i, (start, end)) in matches.iter().enumerate().rev() {
+                if (i + 1) % every_nth as usize == 0 {
+                    result.replace_range(start..end, replacement);
                 }
-            })
+            }
+            result
         }
     } else {
-        re.replace(&content, replacement)
+        let mut result = haystack.to_string();
+        if let Some((start, end)) = matches.first() {
+            result.replace_range(start..end, replacement);
+        }
+        result
     };
 
     // Output result

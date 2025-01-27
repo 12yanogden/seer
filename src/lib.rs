@@ -49,8 +49,7 @@ pub fn init_command() -> Command {
                 .long("haystack")
                 .value_name("HAYSTACK")
                 .help("The string to search within")
-                .action(clap::ArgAction::Set)
-                .required(true),
+                .action(clap::ArgAction::Set),
         )
         .arg(
             Arg::new("all")
@@ -114,12 +113,58 @@ pub fn verify_has_no_conflicting_options(option_pairs: Vec<(Option<&str>, Option
     for (opt1, opt2) in option_pairs {
         if opt1.is_some() && opt2.is_some() {
             eprintln!(
-                "Error: Conflicting options provided: {:?}, {:?}",
+                "error: conflicting options provided: {:?}, {:?}",
                 opt1.unwrap(),
                 opt2.unwrap()
             );
             std::process::exit(1);
         }
+    }
+}
+
+/// Verifies that at least one option is provided.
+///
+/// # Arguments
+///
+/// * `options` - A vector of tuples where each tuple contains the name and value of two options.
+///
+/// # Panics
+///
+/// This function will panic if none of the options are provided.
+///
+/// # Examples
+///
+/// ```
+/// use replace::verify_at_least_one_option_is_provided;
+///
+/// // This will not panic
+/// verify_at_least_one_option_is_provided(vec![
+///     (("haystack", Some("value")), ("stdin", None)),
+///     (("option1", None), ("option2", None)),
+/// ]);
+///
+/// // This will panic
+/// // verify_at_least_one_option_is_provided(vec![
+/// //     (("haystack", None), ("stdin", None)),
+/// //     (("option1", None), ("option2", None)),
+/// // ]);
+/// ```
+pub fn verify_at_least_one_option_is_provided(
+    options: Vec<((&str, Option<&str>), (&str, Option<&str>))>,
+) {
+    let at_least_one_provided = options
+        .iter()
+        .any(|((_, opt1), (_, opt2))| opt1.is_some() || opt2.is_some());
+
+    if !at_least_one_provided {
+        let option_names: Vec<&str> = options
+            .iter()
+            .flat_map(|((name1, _), (name2, _))| vec![*name1, *name2])
+            .collect();
+        panic!(
+            "error: at least one option must be provided: {}",
+            option_names.join(", ")
+        );
     }
 }
 

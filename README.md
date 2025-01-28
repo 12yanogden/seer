@@ -82,3 +82,14 @@ Expected result:
 ```text
 foo foo bar foo
 ```
+
+### Next Steps
+
+- [ ] Add --file option
+- [ ] Add --between option
+- [ ] Rename to mag, update README
+- [ ] Make replacement optional. If not provided, behave as find.
+- [ ] Add --whole_line option to consider the whole line as the match. Whole lines when using - [ ]-between.
+- [ ] Add --count option
+- [ ] Add support for negative nth and every_nth values
+- [ ] Add explanation in README for no --and and --or options. Logic operators should be in the calling code.

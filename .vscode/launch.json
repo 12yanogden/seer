@@ -1,0 +1,36 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Test",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib"
+                ]
+            },
+            "program": "${workspaceFolder}/target/debug/seek",
+            "args": [],
+            "sourceLanguages": ["rust"],
+            "preLaunchTask": "cargo build"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Test Docs",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--doc"
+                ]
+            },
+            "program": "${workspaceFolder}/target/debug/seek",
+            "args": [],
+            "sourceLanguages": ["rust"],
+            "preLaunchTask": "cargo build"
+        }
+    ]
+}

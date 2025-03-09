@@ -3,9 +3,10 @@ mod file_sys;
 mod hit;
 mod parse;
 mod search_strategies {
+    pub mod between;
+    pub mod regex;
     pub mod search_strategy;
-    pub mod target;
-    pub mod regex; // Add regex module
+    pub mod target; // Add between module
 }
 mod validate;
 pub use command::init;

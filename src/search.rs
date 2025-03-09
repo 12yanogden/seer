@@ -1,6 +1,6 @@
 use crate::search_strategies::regex::RegexStrategy;
 use crate::search_strategies::search_strategy::SearchStrategy;
-use crate::search_strategies::target::TargetStrategy;
+use crate::search_strategies::target::TargetSearchStrategy;
 use clap::ArgMatches;
 use std::collections::HashMap;
 
@@ -9,7 +9,7 @@ fn search(matches: &ArgMatches, searchable: String) {
     let mut params = HashMap::new();
 
     if let Some(target) = matches.get_one::<String>("target") {
-        strategy = Some(Box::new(TargetStrategy));
+        strategy = Some(Box::new(TargetSearchStrategy));
         params.insert(String::from("target"), target.clone());
     } else if let Some(regex) = matches.get_one::<String>("regex") {
         strategy = Some(Box::new(RegexStrategy));

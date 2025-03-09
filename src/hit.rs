@@ -1,6 +1,7 @@
+#[derive(Debug)]
 pub struct Hit {
-    value: String,
-    position: usize,
+    pub(crate) value: String,
+    pub(crate) position: usize,
 }
 
 impl Hit {
@@ -16,7 +17,7 @@ impl Hit {
 
     /// Returns the end position (position + length).
     pub fn end_position(&self) -> usize {
-        self.position + self.length()
+        self.position + self.length() - 1
     }
 }
 
@@ -48,6 +49,6 @@ mod tests {
             value: String::from("test"),
             position: 5,
         };
-        assert_eq!(h.end_position(), 9);
+        assert_eq!(h.end_position(), 8);
     }
 }

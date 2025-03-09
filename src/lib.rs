@@ -2,6 +2,11 @@ mod command;
 mod file_sys;
 mod hit;
 mod parse;
+mod search_strategies {
+    pub mod search_strategy;
+    pub mod target;
+    pub mod regex; // Add regex module
+}
 mod validate;
 pub use command::init;
 pub use file_sys::{get_file_paths_from_dir, read_file};

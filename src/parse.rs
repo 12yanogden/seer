@@ -1,4 +1,5 @@
 use crate::read_file;
+use clap::ArgMatches;
 use std::io::{self, Read};
 
 /// Extracts the searchable body of text from the `--text` option, `--file` option, or piped input.
@@ -22,7 +23,7 @@ use std::io::{self, Read};
 /// let searchable = get_searchable(&matches.unwrap(), &pipe).unwrap();
 /// assert_eq!(searchable, "bar");
 /// ```
-pub fn get_searchable(matches: &clap::ArgMatches, pipe: &Option<String>) -> io::Result<String> {
+pub fn get_searchable(matches: &ArgMatches, pipe: &Option<String>) -> io::Result<String> {
     if let Some(text) = matches.get_one::<String>("text") {
         Ok(text.clone())
     } else if let Some(file_path) = matches.get_one::<String>("file") {

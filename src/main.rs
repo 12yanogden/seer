@@ -9,12 +9,11 @@ use seek::{get_file_paths_from_dir, get_searchable, init, read_file, read_pipe, 
 /// cargo run -- --target "foo" --text "bar"
 /// ```
 fn main() {
-    // Parse arguments
-    let matches = init().get_matches();
+    let inputs = init().get_matches();
     let pipe = read_pipe();
 
     // Validate input
-    let input_validation = validate_input(&matches, &pipe);
+    let input_validation = validate_input(&inputs, &pipe);
 
     match input_validation {
         Ok(_) => {}
@@ -25,12 +24,12 @@ fn main() {
     }
 
     // Search, edit, evaluate, and output
-    if let Some(dir) = matches.get_one::<String>("dir") {
+    if let Some(dir) = inputs.get_one::<String>("dir") {
         match get_file_paths_from_dir(dir) {
             Ok(file_paths) => {
                 for file_path in file_paths {
                     match read_file(file_path.to_str().unwrap()) {
-                        Ok(file_content) => run(&matches, file_content),
+                        Ok(file_content) => run(&inputs, file_content),
                         Err(e) => {
                             eprintln!("{}", e);
                             std::process::exit(1);
@@ -44,8 +43,8 @@ fn main() {
             }
         }
     } else {
-        match get_searchable(&matches, &pipe) {
-            Ok(searchable) => run(&matches, searchable),
+        match get_searchable(&inputs, &pipe) {
+            Ok(searchable) => run(&inputs, searchable),
             Err(e) => {
                 eprintln!("{}", e);
                 std::process::exit(1);
@@ -54,18 +53,18 @@ fn main() {
     }
 }
 
-fn run(matches: &ArgMatches, searchable: String) {
-    // let search_matches = search(&matches, &searchable);
+fn run(inputs: &ArgMatches, searchable: String) {
+    // let search_matches = search(&inputs, &searchable);
     // let mut editted_searchable = None;
     // let mut evaluation = None;
 
-    // if let Some(edit_strategy) = get_edit_strategy(&matches) {
-    //     editted_searchable = edit(&matches, &searchable, &search_matches, &edit_strategy);
+    // if let Some(edit_strategy) = get_edit_strategy(&inputs) {
+    //     editted_searchable = edit(&inputs, &searchable, &search_matches, &edit_strategy);
     // }
 
-    // if let Some(evaluation_strategy) = get_evaluation_strategy(&matches) {
+    // if let Some(evaluation_strategy) = get_evaluation_strategy(&inputs) {
     //     evaluation = evaluate(
-    //         &matches,
+    //         &inputs,
     //         &searchable,
     //         &search_matches,
     //         &editted_searchable,
@@ -74,7 +73,7 @@ fn run(matches: &ArgMatches, searchable: String) {
     // }
 
     // output(
-    //     &matches,
+    //     &inputs,
     //     &searchable,
     //     &search_matches,
     //     &editted_searchable,

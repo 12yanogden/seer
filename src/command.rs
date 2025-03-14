@@ -181,15 +181,9 @@ pub fn init() -> Command {
                 .value_parser(clap::value_parser!(u16).range(0..))
                 .action(clap::ArgAction::Set),
         )
-        .arg(
-            Arg::new("all")
-                .long("all")
-                .help("Find/replace all matches")
-                .action(clap::ArgAction::SetTrue),
-        )
         .group(
             ArgGroup::new("frequency")
-                .args(["nth", "every_nth", "all"])
+                .args(["nth", "every_nth"])
                 .required(false)
                 .multiple(false),
         )
@@ -514,15 +508,6 @@ mod init_tests {
         ]);
         assert!(matches.is_ok());
 
-        // Test with only --all
-        let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
-            "--text", "bar",
-            "--all"
-        ]);
-        assert!(matches.is_ok());
-
         // Test with --nth and --every_nth (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
             "seek",
@@ -530,30 +515,6 @@ mod init_tests {
             "--text", "bar",
             "--nth", "1",
             "--every_nth", "2"
-        ]);
-        assert!(matches.is_err());
-        let err = matches.unwrap_err();
-        assert_eq!(err.kind(), ErrorKind::ArgumentConflict);
-
-        // Test with --nth and --all (should fail)
-        let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
-            "--text", "bar",
-            "--nth", "1",
-            "--all"
-        ]);
-        assert!(matches.is_err());
-        let err = matches.unwrap_err();
-        assert_eq!(err.kind(), ErrorKind::ArgumentConflict);
-
-        // Test with --every_nth and --all (should fail)
-        let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
-            "--text", "bar",
-            "--every_nth", "2",
-            "--all"
         ]);
         assert!(matches.is_err());
         let err = matches.unwrap_err();

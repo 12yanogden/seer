@@ -1,7 +1,6 @@
 use crate::hit::Hit;
 use crate::search_strategies::search_strategy::SearchStrategy;
 use regex::Regex;
-use std::collections::HashMap;
 
 /// A search strategy that finds text matching a regex pattern.
 pub struct RegexSearchStrategy {

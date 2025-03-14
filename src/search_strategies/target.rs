@@ -1,6 +1,5 @@
 use crate::hit::Hit;
 use crate::search_strategies::search_strategy::SearchStrategy;
-use std::collections::HashMap;
 
 /// A search strategy that finds occurrences of a target string.
 pub struct TargetSearchStrategy {

@@ -1,19 +1,13 @@
+use crate::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
 use crate::hit::Hit;
-use crate::search_strategies::search_strategy::SearchStrategy;
 use crate::search_strategies::search_strategy_factory::SearchStrategyFactory;
 use clap::ArgMatches;
-use std::collections::HashMap;
 
-fn search(inputs: &ArgMatches, searchable: String) -> Vec<Hit> {
-    let strategy = SearchStrategyFactory::create(inputs);
+pub fn search(inputs: &ArgMatches, searchable: String) -> Vec<Hit> {
+    let frequency_strategy = FrequencyStrategyFactory::make(inputs);
+    let mut search_strategy = SearchStrategyFactory::make(inputs, frequency_strategy);
 
-    let hits = strategy.search(&searchable);
-    if inputs.get_one::<u16>("nth").is_some() || inputs.get_one::<u16>("every_nth").is_some() {
-        let filtered_hits = apply_frequency(inputs, hits);
-        return filtered_hits;
-    } else {
-        return hits;
-    }
+    search_strategy.search(&searchable)
 }
 
 /// Applies frequency filtering to the hits based on the inputs.
@@ -30,10 +24,10 @@ fn search(inputs: &ArgMatches, searchable: String) -> Vec<Hit> {
 /// ```
 /// use clap::{ArgMatches, Command};
 /// use seek::hit::Hit;
-/// use seek::apply_frequency;
+/// use seek::search::apply_frequency;
 ///
 /// let inputs = Command::new("test")
-///     .arg(clap::arg!(--nth <NTH> "Find/replace only the nth match").value_parser(clap::value_parser!(u16)))
+///     .arg(clap::arg!(--nth <NTH> "Find/replace only the nth match").value_parser(clap::value_parser!(u64)))
 ///     .try_get_matches_from(vec!["test", "--nth", "1"])
 ///     .unwrap();
 ///
@@ -47,10 +41,10 @@ fn search(inputs: &ArgMatches, searchable: String) -> Vec<Hit> {
 /// assert_eq!(filtered_hits.len(), 1);
 /// assert_eq!(filtered_hits[0].get_value(), "hit2");
 /// ```
-fn apply_frequency(inputs: &ArgMatches, hits: Vec<Hit>) -> Vec<Hit> {
-    if let Some(nth) = inputs.get_one::<u16>("nth") {
+pub fn apply_frequency(inputs: &ArgMatches, hits: Vec<Hit>) -> Vec<Hit> {
+    if let Some(nth) = inputs.get_one::<u64>("nth") {
         hits.into_iter().nth(*nth as usize).into_iter().collect()
-    } else if let Some(every_nth) = inputs.get_one::<u16>("every_nth") {
+    } else if let Some(every_nth) = inputs.get_one::<u64>("every_nth") {
         hits.into_iter()
             .enumerate()
             .filter_map(|(i, hit)| {
@@ -76,12 +70,12 @@ mod tests {
             .arg(
                 Arg::new("nth")
                     .long("nth")
-                    .value_parser(clap::value_parser!(u16)),
+                    .value_parser(clap::value_parser!(u64)),
             )
             .arg(
                 Arg::new("every_nth")
                     .long("every_nth")
-                    .value_parser(clap::value_parser!(u16)),
+                    .value_parser(clap::value_parser!(u64)),
             )
             .try_get_matches_from(args)
             .unwrap()

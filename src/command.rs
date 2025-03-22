@@ -23,7 +23,7 @@ pub fn init() -> Command {
     Command::new("seek")
         .version("1.0")
         .author("Ryan Ogden <12yanogden@gmail.com>")
-        .about("Find/replace matches in a string or file using plain text or regex patterns.")
+        .about("Find/edit matches in a string or file using plain text or regex patterns.")
 
         // Search strategies group
         .arg(
@@ -46,7 +46,7 @@ pub fn init() -> Command {
             Arg::new("between")
                 .short('b')
                 .long("between")
-                .help("Two regex patterns to search for. Find/replace both matches and the text between. Use --exclude_matches to only find/replace the text between.")
+                .help("Two regex patterns to search for. Find/edit both matches and the text between. Use --exclude_matches to only find/edit the text between.")
                 .num_args(2)
                 .value_names(&["begin", "end"]),
         )
@@ -62,7 +62,7 @@ pub fn init() -> Command {
             Arg::new("exclude_matches")
                 .short('e')
                 .long("exclude_matches")
-                .help("Only find/replace the text between the two regex patterns")
+                .help("Only find/edit the text between the two regex patterns")
                 .action(clap::ArgAction::SetTrue),
         )
         .group(
@@ -154,7 +154,7 @@ pub fn init() -> Command {
                 .long("max_depth")
                 .value_name("MAX_DEPTH")
                 .help("The maximum depth to search within the directory")
-                .value_parser(clap::value_parser!(u16).range(0..))
+                .value_parser(clap::value_parser!(u64).range(0..))
                 .action(clap::ArgAction::Set),
         )
         .group(
@@ -169,21 +169,28 @@ pub fn init() -> Command {
             Arg::new("nth")
                 .long("nth")
                 .value_name("NTH")
-                .help("Find/replace only the nth match")
-                .value_parser(clap::value_parser!(u16).range(0..))
+                .help("Find/edit only the nth match")
+                .value_parser(clap::value_parser!(u64).range(0..))
                 .action(clap::ArgAction::Set),
         )
         .arg(
             Arg::new("every_nth")
                 .long("every_nth")
                 .value_name("EVERY_NTH")
-                .help("Find/replace every nth match")
-                .value_parser(clap::value_parser!(u16).range(0..))
+                .help("Find/edit every nth match")
+                .value_parser(clap::value_parser!(u64).range(0..))
                 .action(clap::ArgAction::Set),
+        )
+        .arg(
+            Arg::new("all")
+                .long("all")
+                .value_name("ALL")
+                .help("Find/edit all matches")
+                .action(clap::ArgAction::SetTrue),
         )
         .group(
             ArgGroup::new("frequency")
-                .args(["nth", "every_nth"])
+                .args(["nth", "every_nth", "all"])
                 .required(false)
                 .multiple(false),
         )
@@ -508,6 +515,15 @@ mod init_tests {
         ]);
         assert!(matches.is_ok());
 
+        // Test with only --all
+        let matches = CMD.clone().try_get_matches_from(vec![
+            "seek",
+            "--target", "foo",
+            "--text", "bar",
+            "--all"
+        ]);
+        assert!(matches.is_ok());
+
         // Test with --nth and --every_nth (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
             "seek",
@@ -515,6 +531,30 @@ mod init_tests {
             "--text", "bar",
             "--nth", "1",
             "--every_nth", "2"
+        ]);
+        assert!(matches.is_err());
+        let err = matches.unwrap_err();
+        assert_eq!(err.kind(), ErrorKind::ArgumentConflict);
+
+        // Test with --nth and --all (should fail)
+        let matches = CMD.clone().try_get_matches_from(vec![
+            "seek",
+            "--target", "foo",
+            "--text", "bar",
+            "--nth", "1",
+            "--all"
+        ]);
+        assert!(matches.is_err());
+        let err = matches.unwrap_err();
+        assert_eq!(err.kind(), ErrorKind::ArgumentConflict);
+
+        // Test with --every_nth and --all (should fail)
+        let matches = CMD.clone().try_get_matches_from(vec![
+            "seek",
+            "--target", "foo",
+            "--text", "bar",
+            "--every_nth", "2",
+            "--all"
         ]);
         assert!(matches.is_err());
         let err = matches.unwrap_err();

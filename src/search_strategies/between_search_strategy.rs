@@ -1,5 +1,7 @@
+use super::search_strategy::SearchStrategy;
+use super::search_strategy_type::SearchStrategyType;
+use crate::frequency_strategies::frequency_strategy::FrequencyStrategy;
 use crate::hit::Hit;
-use crate::search_strategies::search_strategy::SearchStrategy;
 use regex::Regex;
 
 /// A search strategy that finds text between two regex patterns.
@@ -7,19 +9,30 @@ pub struct BetweenSearchStrategy {
     from: String,
     to: String,
     exclude_matches: bool,
+    frequency_strategy: Box<dyn FrequencyStrategy>,
 }
 
 impl BetweenSearchStrategy {
-    pub fn new(from: String, to: String, exclude_matches: bool) -> Self {
+    pub fn new(
+        from: String,
+        to: String,
+        exclude_matches: bool,
+        frequency_strategy: Box<dyn FrequencyStrategy>,
+    ) -> Self {
         Self {
             from,
             to,
             exclude_matches,
+            frequency_strategy,
         }
     }
 }
 
 impl SearchStrategy for BetweenSearchStrategy {
+    fn strategy_type(&self) -> SearchStrategyType {
+        SearchStrategyType::Between
+    }
+
     /// Searches for text between two regex patterns.
     ///
     /// # Parameters
@@ -31,10 +44,16 @@ impl SearchStrategy for BetweenSearchStrategy {
     /// # Examples
     ///
     /// ```
-    /// use seek::search_strategies::between::BetweenSearchStrategy;
+    /// use seek::search_strategies::between_search_strategy::BetweenSearchStrategy;
     /// use seek::search_strategies::search_strategy::SearchStrategy;
+    /// use seek::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
     ///
-    /// let strategy = BetweenSearchStrategy::new(String::from("start"), String::from("end"), false);
+    /// let mut strategy = BetweenSearchStrategy::new(
+    ///     String::from("start"),
+    ///     String::from("end"),
+    ///     false,
+    ///     FrequencyStrategyFactory::make_for_testing(),
+    /// );
     /// let searchable = "start123endstart456endstart789end";
     /// let hits = strategy.search(searchable);
     ///
@@ -43,7 +62,7 @@ impl SearchStrategy for BetweenSearchStrategy {
     /// assert_eq!(hits[0].get_position(), 0);
     /// assert_eq!(hits[0].get_end_position(), 10);
     /// ```
-    fn search(&self, searchable: &str) -> Vec<Hit> {
+    fn search(&mut self, searchable: &str) -> Vec<Hit> {
         let mut hits = Vec::new();
 
         // Compile regex patterns
@@ -82,7 +101,14 @@ impl SearchStrategy for BetweenSearchStrategy {
                 };
 
                 // Add hit to results
-                hits.push(Hit::new(hit_value.to_string(), hit_position));
+                if self.frequency_strategy.matches_frequency() {
+                    hits.push(Hit::new(hit_value.to_string(), hit_position));
+                }
+
+                // If the frequency strategy is done, return early
+                if self.frequency_strategy.is_done() {
+                    return hits;
+                }
             } else {
                 break;
             }
@@ -95,12 +121,18 @@ impl SearchStrategy for BetweenSearchStrategy {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
 
     #[test]
     fn test_between_strategy_including_matches() {
         let from = r"start";
         let to = r"end";
-        let strategy = BetweenSearchStrategy::new(from.to_string(), to.to_string(), false);
+        let mut strategy = BetweenSearchStrategy::new(
+            from.to_string(),
+            to.to_string(),
+            false,
+            FrequencyStrategyFactory::make_for_testing(),
+        );
 
         let searchable = "start123endstart456endstart789end";
         let hits = strategy.search(searchable);
@@ -121,7 +153,12 @@ mod tests {
     fn test_between_strategy_excluding_matches() {
         let from = r"start";
         let to = r"end";
-        let strategy = BetweenSearchStrategy::new(from.to_string(), to.to_string(), true);
+        let mut strategy = BetweenSearchStrategy::new(
+            from.to_string(),
+            to.to_string(),
+            true,
+            FrequencyStrategyFactory::make_for_testing(),
+        );
 
         let searchable = "start123endstart456endstart789end";
         let hits = strategy.search(searchable);

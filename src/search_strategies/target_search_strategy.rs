@@ -1,18 +1,28 @@
+use super::search_strategy::SearchStrategy;
+use super::search_strategy_type::SearchStrategyType;
+use crate::frequency_strategies::frequency_strategy::FrequencyStrategy;
 use crate::hit::Hit;
-use crate::search_strategies::search_strategy::SearchStrategy;
 
 /// A search strategy that finds occurrences of a target string.
 pub struct TargetSearchStrategy {
     target: String,
+    frequency_strategy: Box<dyn FrequencyStrategy>,
 }
 
 impl TargetSearchStrategy {
-    pub fn new(target: String) -> Self {
-        Self { target }
+    pub fn new(target: String, frequency_strategy: Box<dyn FrequencyStrategy>) -> Self {
+        Self {
+            target,
+            frequency_strategy,
+        }
     }
 }
 
 impl SearchStrategy for TargetSearchStrategy {
+    fn strategy_type(&self) -> SearchStrategyType {
+        SearchStrategyType::Target
+    }
+
     /// Searches for occurrences of a target string.
     ///
     /// # Parameters
@@ -24,10 +34,14 @@ impl SearchStrategy for TargetSearchStrategy {
     /// # Examples
     ///
     /// ```
-    /// use seek::search_strategies::target::TargetSearchStrategy;
+    /// use seek::search_strategies::target_search_strategy::TargetSearchStrategy;
     /// use seek::search_strategies::search_strategy::SearchStrategy;
+    /// use seek::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
     ///
-    /// let strategy = TargetSearchStrategy::new(String::from("test"));
+    /// let mut strategy = TargetSearchStrategy::new(
+    ///     String::from("test"),
+    ///     FrequencyStrategyFactory::make_for_testing()
+    /// );
     ///
     /// let searchable = "test1234567890tester1234567890retest1234567890test";
     /// let hits = strategy.search(searchable);
@@ -36,13 +50,18 @@ impl SearchStrategy for TargetSearchStrategy {
     /// assert_eq!(hits[0].get_value(), "test");
     /// assert_eq!(hits[0].get_position(), 0);
     /// ```
-    fn search(&self, searchable: &str) -> Vec<Hit> {
+    fn search(&mut self, searchable: &str) -> Vec<Hit> {
         let mut hits = Vec::new();
         let target_len = self.target.len();
         let mut pos = 0;
         while let Some(start) = searchable[pos..].find(&self.target) {
             let position = pos + start;
-            hits.push(Hit::new(self.target.clone(), position));
+            if self.frequency_strategy.matches_frequency() {
+                hits.push(Hit::new(self.target.clone(), position));
+            }
+            if self.frequency_strategy.is_done() {
+                return hits;
+            }
             pos = position + target_len;
         }
         hits
@@ -51,12 +70,17 @@ impl SearchStrategy for TargetSearchStrategy {
 
 #[cfg(test)]
 mod tests {
+    use crate::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+
     use super::*;
 
     #[test]
     fn test_target_strategy() {
         let target = "test";
-        let strategy = TargetSearchStrategy::new(target.to_string());
+        let mut strategy = TargetSearchStrategy::new(
+            target.to_string(),
+            FrequencyStrategyFactory::make_for_testing(),
+        );
 
         let searchable = "test1234567890tester1234567890retest1234567890test";
         let hits = strategy.search(searchable);

@@ -1,5 +1,6 @@
 use clap::ArgMatches;
-use seek::{get_file_paths_from_dir, get_searchable, init, read_file, read_pipe, validate_input};
+use seek::search::search;
+use seek::{get_file_paths_from_dir, get_searchable, init, read_file, read_pipe, validate_input}; // Add this line to import the search function
 
 /// The main function that orchestrates the argument parsing, validation, and replacement.
 ///
@@ -54,9 +55,9 @@ fn main() {
 }
 
 fn run(inputs: &ArgMatches, searchable: String) {
-    // let search_matches = search(&inputs, &searchable);
-    // let mut editted_searchable = None;
-    // let mut evaluation = None;
+    let search_matches = search(inputs, searchable); // Call the search function here
+                                                     // let mut editted_searchable = None;
+                                                     // let mut evaluation = None;
 
     // if let Some(edit_strategy) = get_edit_strategy(&inputs) {
     //     editted_searchable = edit(&inputs, &searchable, &search_matches, &edit_strategy);

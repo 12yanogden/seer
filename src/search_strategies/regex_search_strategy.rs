@@ -1,19 +1,29 @@
+use super::search_strategy::SearchStrategy;
+use super::search_strategy_type::SearchStrategyType;
+use crate::frequency_strategies::frequency_strategy::FrequencyStrategy;
 use crate::hit::Hit;
-use crate::search_strategies::search_strategy::SearchStrategy;
 use regex::Regex;
 
 /// A search strategy that finds text matching a regex pattern.
 pub struct RegexSearchStrategy {
     regex: String,
+    frequency_strategy: Box<dyn FrequencyStrategy>,
 }
 
 impl RegexSearchStrategy {
-    pub fn new(regex: String) -> Self {
-        Self { regex }
+    pub fn new(regex: String, frequency_strategy: Box<dyn FrequencyStrategy>) -> Self {
+        Self {
+            regex,
+            frequency_strategy,
+        }
     }
 }
 
 impl SearchStrategy for RegexSearchStrategy {
+    fn strategy_type(&self) -> SearchStrategyType {
+        SearchStrategyType::Regex
+    }
+
     /// Searches for text matching a regex pattern.
     ///
     /// # Parameters
@@ -25,10 +35,14 @@ impl SearchStrategy for RegexSearchStrategy {
     /// # Examples
     ///
     /// ```
-    /// use seek::search_strategies::regex::RegexSearchStrategy;
+    /// use seek::search_strategies::regex_search_strategy::RegexSearchStrategy;
     /// use seek::search_strategies::search_strategy::SearchStrategy;
+    /// use seek::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
     ///
-    /// let strategy = RegexSearchStrategy::new(String::from(r"\d+"));
+    /// let mut strategy = RegexSearchStrategy::new(
+    ///     String::from(r"\d+"),
+    ///     FrequencyStrategyFactory::make_for_testing()
+    /// );
     ///
     /// let searchable = "test1234567890tester1234567890retest1234567890test";
     /// let hits = strategy.search(searchable);
@@ -37,11 +51,17 @@ impl SearchStrategy for RegexSearchStrategy {
     /// assert_eq!(hits[0].get_value(), "1234567890");
     /// assert_eq!(hits[0].get_position(), 4);
     /// ```
-    fn search(&self, searchable: &str) -> Vec<Hit> {
+    fn search(&mut self, searchable: &str) -> Vec<Hit> {
         let mut hits = Vec::new();
         if let Ok(regex) = Regex::new(&self.regex) {
             for mat in regex.find_iter(searchable) {
-                hits.push(Hit::new(mat.as_str().to_string(), mat.start()));
+                if self.frequency_strategy.matches_frequency() {
+                    hits.push(Hit::new(mat.as_str().to_string(), mat.start()));
+                }
+
+                if self.frequency_strategy.is_done() {
+                    return hits;
+                }
             }
         }
         hits
@@ -50,12 +70,17 @@ impl SearchStrategy for RegexSearchStrategy {
 
 #[cfg(test)]
 mod tests {
+    use crate::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+
     use super::*;
 
     #[test]
     fn test_regex_strategy() {
         let regex = r"[a-z]*test[a-z]*";
-        let strategy = RegexSearchStrategy::new(String::from(regex));
+        let mut strategy = RegexSearchStrategy::new(
+            String::from(regex),
+            FrequencyStrategyFactory::make_for_testing(),
+        );
 
         let searchable = "test1234567890tester1234567890retest1234567890test";
         let hits = strategy.search(searchable);

@@ -26,8 +26,8 @@ impl FrequencyStrategyFactory {
     ///
     /// ```
     /// use clap::{Command, Arg};
-    /// use seek::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
-    /// use seek::frequency_strategies::frequency_strategy_type::FrequencyStrategyType;
+    /// use parse::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+    /// use parse::frequency_strategies::frequency_strategy_type::FrequencyStrategyType;
     ///
     /// let cmd = Command::new("test")
     ///     .arg(Arg::new("nth")
@@ -61,8 +61,8 @@ impl FrequencyStrategyFactory {
     /// # Examples
     ///
     /// ```
-    /// use seek::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
-    /// use seek::frequency_strategies::frequency_strategy_type::FrequencyStrategyType;
+    /// use parse::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+    /// use parse::frequency_strategies::frequency_strategy_type::FrequencyStrategyType;
     ///
     /// let strategy = FrequencyStrategyFactory::make_for_testing();
     /// assert_eq!(strategy.strategy_type(), FrequencyStrategyType::All);

@@ -23,8 +23,8 @@ pub fn search(inputs: &ArgMatches, searchable: String) -> Vec<Hit> {
 ///
 /// ```
 /// use clap::{ArgMatches, Command};
-/// use seek::hit::Hit;
-/// use seek::search::apply_frequency;
+/// use parse::hit::Hit;
+/// use parse::search::apply_frequency;
 ///
 /// let inputs = Command::new("test")
 ///     .arg(clap::arg!(--nth <NTH> "Find/replace only the nth match").value_parser(clap::value_parser!(u64)))

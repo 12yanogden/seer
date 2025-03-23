@@ -3,27 +3,27 @@ use super::search_strategy_type::SearchStrategyType;
 use crate::frequency_strategies::frequency_strategy::FrequencyStrategy;
 use crate::hit::Hit;
 
-/// A search strategy that finds occurrences of a target string.
-pub struct TargetSearchStrategy {
-    target: String,
+/// A search strategy that finds occurrences of a exact string.
+pub struct ExactSearchStrategy {
+    exact: String,
     frequency_strategy: Box<dyn FrequencyStrategy>,
 }
 
-impl TargetSearchStrategy {
-    pub fn new(target: String, frequency_strategy: Box<dyn FrequencyStrategy>) -> Self {
+impl ExactSearchStrategy {
+    pub fn new(exact: String, frequency_strategy: Box<dyn FrequencyStrategy>) -> Self {
         Self {
-            target,
+            exact,
             frequency_strategy,
         }
     }
 }
 
-impl SearchStrategy for TargetSearchStrategy {
+impl SearchStrategy for ExactSearchStrategy {
     fn strategy_type(&self) -> SearchStrategyType {
-        SearchStrategyType::Target
+        SearchStrategyType::Exact
     }
 
-    /// Searches for occurrences of a target string.
+    /// Searches for occurrences of a exact string.
     ///
     /// # Parameters
     /// - `searchable`: The text to search within.
@@ -34,11 +34,11 @@ impl SearchStrategy for TargetSearchStrategy {
     /// # Examples
     ///
     /// ```
-    /// use seek::search_strategies::target_search_strategy::TargetSearchStrategy;
-    /// use seek::search_strategies::search_strategy::SearchStrategy;
-    /// use seek::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+    /// use parse::search_strategies::exact_search_strategy::ExactSearchStrategy;
+    /// use parse::search_strategies::search_strategy::SearchStrategy;
+    /// use parse::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
     ///
-    /// let mut strategy = TargetSearchStrategy::new(
+    /// let mut strategy = ExactSearchStrategy::new(
     ///     String::from("test"),
     ///     FrequencyStrategyFactory::make_for_testing()
     /// );
@@ -52,17 +52,17 @@ impl SearchStrategy for TargetSearchStrategy {
     /// ```
     fn search(&mut self, searchable: &str) -> Vec<Hit> {
         let mut hits = Vec::new();
-        let target_len = self.target.len();
+        let exact_len = self.exact.len();
         let mut pos = 0;
-        while let Some(start) = searchable[pos..].find(&self.target) {
+        while let Some(start) = searchable[pos..].find(&self.exact) {
             let position = pos + start;
             if self.frequency_strategy.matches_frequency() {
-                hits.push(Hit::new(self.target.clone(), position));
+                hits.push(Hit::new(self.exact.clone(), position));
             }
             if self.frequency_strategy.is_done() {
                 return hits;
             }
-            pos = position + target_len;
+            pos = position + exact_len;
         }
         hits
     }
@@ -75,10 +75,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_target_strategy() {
-        let target = "test";
-        let mut strategy = TargetSearchStrategy::new(
-            target.to_string(),
+    fn test_exact_strategy() {
+        let exact = "test";
+        let mut strategy = ExactSearchStrategy::new(
+            exact.to_string(),
             FrequencyStrategyFactory::make_for_testing(),
         );
 
@@ -86,16 +86,16 @@ mod tests {
         let hits = strategy.search(searchable);
 
         assert_eq!(hits.len(), 4);
-        assert_eq!(hits[0].get_value(), target);
+        assert_eq!(hits[0].get_value(), exact);
         assert_eq!(hits[0].get_position(), 0);
         assert_eq!(hits[0].get_end_position(), 3);
-        assert_eq!(hits[1].get_value(), target);
+        assert_eq!(hits[1].get_value(), exact);
         assert_eq!(hits[1].get_position(), 14);
         assert_eq!(hits[1].get_end_position(), 17);
-        assert_eq!(hits[2].get_value(), target);
+        assert_eq!(hits[2].get_value(), exact);
         assert_eq!(hits[2].get_position(), 32);
         assert_eq!(hits[2].get_end_position(), 35);
-        assert_eq!(hits[3].get_value(), target);
+        assert_eq!(hits[3].get_value(), exact);
         assert_eq!(hits[3].get_position(), 46);
         assert_eq!(hits[3].get_end_position(), 49);
     }

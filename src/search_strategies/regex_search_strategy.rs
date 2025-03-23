@@ -35,9 +35,9 @@ impl SearchStrategy for RegexSearchStrategy {
     /// # Examples
     ///
     /// ```
-    /// use seek::search_strategies::regex_search_strategy::RegexSearchStrategy;
-    /// use seek::search_strategies::search_strategy::SearchStrategy;
-    /// use seek::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+    /// use parse::search_strategies::regex_search_strategy::RegexSearchStrategy;
+    /// use parse::search_strategies::search_strategy::SearchStrategy;
+    /// use parse::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
     ///
     /// let mut strategy = RegexSearchStrategy::new(
     ///     String::from(r"\d+"),

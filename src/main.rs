@@ -1,13 +1,13 @@
 use clap::ArgMatches;
-use seek::search::search;
-use seek::{get_file_paths_from_dir, get_searchable, init, read_file, read_pipe, validate_input}; // Add this line to import the search function
+use parse::search::search;
+use parse::{get_file_paths_from_dir, get_searchable, init, read_file, read_pipe, validate_input}; // Add this line to import the search function
 
 /// The main function that orchestrates the argument parsing, validation, and replacement.
 ///
 /// # Examples
 ///
 /// ```
-/// cargo run -- --target "foo" --text "bar"
+/// cargo run -- --exact "foo" --text "bar"
 /// ```
 fn main() {
     let inputs = init().get_matches();

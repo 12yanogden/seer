@@ -9,28 +9,28 @@ use clap::{Arg, ArgGroup, Command};
 /// # Examples
 ///
 /// ```
-/// use seek::init;
+/// use parse::init;
 /// use clap::CommandFactory;
 ///
-/// let cmd = seek::init();
-/// let matches = cmd.override_usage("seek --regex <REGEX> --text <TEXT>")
-///     .try_get_matches_from(vec!["seek", "--regex", "foo", "--text", "test string"])
+/// let cmd = parse::init();
+/// let matches = cmd.override_usage("parse --regex <REGEX> --text <TEXT>")
+///     .try_get_matches_from(vec!["parse", "--regex", "foo", "--text", "test string"])
 ///     .unwrap();
 /// assert_eq!(matches.get_one::<String>("regex").unwrap(), "foo");
 /// assert_eq!(matches.get_one::<String>("text").unwrap(), "test string");
 /// ```
 pub fn init() -> Command {
-    Command::new("seek")
+    Command::new("parse")
         .version("1.0")
         .author("Ryan Ogden <12yanogden@gmail.com>")
         .about("Find/edit matches in a string or file using plain text or regex patterns.")
 
         // Search strategies group
         .arg(
-            Arg::new("target")
+            Arg::new("exact")
                 .short('t')
-                .long("target")
-                .value_name("TARGET")
+                .long("exact")
+                .value_name("EXACT")
                 .help("A plain text string to find")
                 .action(clap::ArgAction::Set),
         )
@@ -52,7 +52,7 @@ pub fn init() -> Command {
         )
         .group(
             ArgGroup::new("search_strategies")
-                .args(&["target", "regex", "between"])
+                .args(&["exact", "regex", "between"])
                 .required(true)
                 .multiple(false),
         )
@@ -209,24 +209,24 @@ mod init_tests {
     fn test_one_and_only_one_search_strategy_can_be_given() {
         // Test with no search strategy (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
+            "parse",
             "--text", "foo"
         ]);
         assert!(matches.is_err());
         let err = matches.unwrap_err();
         assert_eq!(err.kind(), ErrorKind::MissingRequiredArgument);
 
-        // Test with only --target
+        // Test with only --exact
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo", 
+            "parse",
+            "--exact", "foo", 
             "--text", "bar"
         ]);
         assert!(matches.is_ok());
 
         // Test with only --regex
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
+            "parse",
             "--regex", "foo",
             "--text", "bar"
         ]);
@@ -234,16 +234,16 @@ mod init_tests {
 
         // Test with only --between
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
+            "parse",
             "--between", "foo", "bar",
             "--text", "bar"
         ]);
         assert!(matches.is_ok());
 
-        // Test with --target and --regex (should fail)
+        // Test with --exact and --regex (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--regex", "bar",
             "--text", "bar"
         ]);
@@ -251,10 +251,10 @@ mod init_tests {
         let err = matches.unwrap_err();
         assert_eq!(err.kind(), ErrorKind::ArgumentConflict);
 
-        // Test with --target and --between (should fail)
+        // Test with --exact and --between (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--between", "foo", "bar",
             "--text", "bar"
         ]);
@@ -264,7 +264,7 @@ mod init_tests {
 
         // Test with --regex and --between (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
+            "parse",
             "--regex", "foo",
             "--between", "foo", "bar",
             "--text", "bar"
@@ -279,8 +279,8 @@ mod init_tests {
     fn test_exclude_matches_flag_requires_between_flag() {
         // Test with only --exclude_matches (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--exclude_matches"
         ]);
@@ -290,7 +290,7 @@ mod init_tests {
 
         // Test with --between and --exclude_matches (should pass)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
+            "parse",
             "--between", "foo", "bar",
             "--text", "bar",
             "--exclude_matches"
@@ -302,16 +302,16 @@ mod init_tests {
     fn test_zero_or_one_edit_strategy_can_be_given() {
         // Test with no edit strategy
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
         ]);
         assert!(matches.is_ok());
 
         // Test with only --prepend
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--prepend", "baz"
         ]);
@@ -319,8 +319,8 @@ mod init_tests {
 
         // Test with only --replace_with
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--replace_with", "baz"
         ]);
@@ -328,8 +328,8 @@ mod init_tests {
 
         // Test with only --append
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--append", "baz"
         ]);
@@ -337,8 +337,8 @@ mod init_tests {
 
         // Test with --prepend and --replace_with (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--prepend", "baz",
             "--replace_with", "qux"
@@ -349,8 +349,8 @@ mod init_tests {
 
         // Test with --prepend and --append (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--prepend", "baz",
             "--append", "qux"
@@ -361,8 +361,8 @@ mod init_tests {
 
         // Test with --replace_with and --append (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--replace_with", "baz",
             "--append", "qux"
@@ -376,39 +376,39 @@ mod init_tests {
     fn test_zero_or_one_searchable_can_be_given() {
         // Test with no searchable (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo"
+            "parse",
+            "--exact", "foo"
         ]);
         assert!(matches.is_ok());
 
         // Test with only --text
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar"
         ]);
         assert!(matches.is_ok());
 
         // Test with only --file
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--file", "path/to/file"
         ]);
         assert!(matches.is_ok());
 
         // Test with only --dir
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--dir", "path/to/dir"
         ]);
         assert!(matches.is_ok());
 
         // Test with --text and --file (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--file", "path/to/file"
         ]);
@@ -418,8 +418,8 @@ mod init_tests {
 
         // Test with --text and --dir (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--dir", "path/to/dir"
         ]);
@@ -429,8 +429,8 @@ mod init_tests {
 
         // Test with --file and --dir (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--file", "path/to/file",
             "--dir", "path/to/dir"
         ]);
@@ -444,8 +444,8 @@ mod init_tests {
     fn test_in_place_flag_requires_file_flag() {
         // Test with only --in_place (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--in_place"
         ]);
@@ -455,8 +455,8 @@ mod init_tests {
 
         // Test with --file and --in_place (should pass)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--file", "path/to/file",
             "--in_place"
         ]);
@@ -468,8 +468,8 @@ mod init_tests {
     fn test_max_depth_flag_requires_dir_flag() {
         // Test with only --max_depth (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--max_depth", "2"
         ]);
@@ -479,8 +479,8 @@ mod init_tests {
 
         // Test with --dir and --max_depth (should pass)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--dir", "path/to/dir",
             "--max_depth", "2"
         ]);
@@ -491,16 +491,16 @@ mod init_tests {
     fn test_zero_or_one_frequencies_can_be_given() {
         // Test with no frequency
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar"
         ]);
         assert!(matches.is_ok());
 
         // Test with only --nth
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--nth", "1"
         ]);
@@ -508,8 +508,8 @@ mod init_tests {
 
         // Test with only --every_nth
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--every_nth", "2"
         ]);
@@ -517,8 +517,8 @@ mod init_tests {
 
         // Test with only --all
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--all"
         ]);
@@ -526,8 +526,8 @@ mod init_tests {
 
         // Test with --nth and --every_nth (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--nth", "1",
             "--every_nth", "2"
@@ -538,8 +538,8 @@ mod init_tests {
 
         // Test with --nth and --all (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--nth", "1",
             "--all"
@@ -550,8 +550,8 @@ mod init_tests {
 
         // Test with --every_nth and --all (should fail)
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target", "foo",
+            "parse",
+            "--exact", "foo",
             "--text", "bar",
             "--every_nth", "2",
             "--all"

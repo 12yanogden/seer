@@ -2,7 +2,7 @@ use super::frequency_strategy::FrequencyStrategy;
 use super::frequency_strategy_type::FrequencyStrategyType;
 
 pub struct NthFrequencyStrategy {
-    target_count: usize,
+    exact_count: usize,
     counter: usize,
 }
 
@@ -10,7 +10,7 @@ impl NthFrequencyStrategy {
     /// Creates a new `NthFrequencyStrategy`.
     ///
     /// # Parameters
-    /// - `nth`: The target count for the strategy.
+    /// - `nth`: The exact count for the strategy.
     ///
     /// # Returns
     /// A new `NthFrequencyStrategy` instance.
@@ -18,13 +18,13 @@ impl NthFrequencyStrategy {
     /// # Examples
     ///
     /// ```
-    /// use seek::frequency_strategies::nth_frequency_strategy::NthFrequencyStrategy;
+    /// use parse::frequency_strategies::nth_frequency_strategy::NthFrequencyStrategy;
     ///
     /// let strategy = NthFrequencyStrategy::new(3);
     /// ```
     pub fn new(nth: usize) -> Self {
         Self {
-            target_count: nth,
+            exact_count: nth,
             counter: 0,
         }
     }
@@ -41,10 +41,10 @@ impl FrequencyStrategy for NthFrequencyStrategy {
 
     fn matches_frequency(&mut self) -> bool {
         self.increment_counter();
-        self.counter == self.target_count
+        self.counter == self.exact_count
     }
 
     fn is_done(&self) -> bool {
-        self.counter == self.target_count
+        self.counter == self.exact_count
     }
 }

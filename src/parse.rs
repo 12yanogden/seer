@@ -16,8 +16,8 @@ use std::io::{self, Read};
 /// # Examples
 ///
 /// ```
-/// use seek::{init, get_searchable};
-/// let matches = init().try_get_matches_from(vec!["seek", "--target", "foo", "--text", "bar"]);
+/// use parse::{init, get_searchable};
+/// let matches = init().try_get_matches_from(vec!["parse", "--exact", "foo", "--text", "bar"]);
 /// assert!(matches.is_ok());
 /// let pipe = None;
 /// let searchable = get_searchable(&matches.unwrap(), &pipe).unwrap();
@@ -47,7 +47,7 @@ mod get_searchable_tests {
     #[test]
     fn test_get_searchable_with_text_option() {
         let matches = init()
-            .try_get_matches_from(vec!["seek", "--target", "foo", "--text", "some text"])
+            .try_get_matches_from(vec!["parse", "--exact", "foo", "--text", "some text"])
             .unwrap();
         let pipe = None;
         let searchable = get_searchable(&matches, &pipe).unwrap();
@@ -61,7 +61,7 @@ mod get_searchable_tests {
         let file_path = temp_file.path().to_str().unwrap();
 
         let matches = init()
-            .try_get_matches_from(vec!["seek", "--target", "foo", "--file", file_path])
+            .try_get_matches_from(vec!["parse", "--exact", "foo", "--file", file_path])
             .unwrap();
         let pipe = None;
         let searchable = get_searchable(&matches, &pipe).unwrap();
@@ -71,7 +71,7 @@ mod get_searchable_tests {
     #[test]
     fn test_get_searchable_with_piped_input() {
         let matches = init()
-            .try_get_matches_from(vec!["seek", "--target", "foo"])
+            .try_get_matches_from(vec!["parse", "--exact", "foo"])
             .unwrap();
         let pipe = Some(String::from("piped input"));
         let searchable = get_searchable(&matches, &pipe).unwrap();

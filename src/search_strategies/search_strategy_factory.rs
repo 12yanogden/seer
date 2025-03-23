@@ -1,9 +1,9 @@
 use crate::frequency_strategies::frequency_strategy::FrequencyStrategy;
 
 use super::between_search_strategy::BetweenSearchStrategy;
+use super::exact_search_strategy::ExactSearchStrategy;
 use super::regex_search_strategy::RegexSearchStrategy;
 use super::search_strategy::SearchStrategy;
-use super::target_search_strategy::TargetSearchStrategy;
 use clap::ArgMatches;
 
 /// Factory for creating search strategies based on command line arguments.
@@ -29,29 +29,26 @@ impl SearchStrategyFactory {
     ///
     /// ```
     /// use clap::{Command, Arg};
-    /// use seek::search_strategies::search_strategy_factory::SearchStrategyFactory;
-    /// use seek::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
-    /// use seek::search_strategies::search_strategy_type::SearchStrategyType;
+    /// use parse::search_strategies::search_strategy_factory::SearchStrategyFactory;
+    /// use parse::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+    /// use parse::search_strategies::search_strategy_type::SearchStrategyType;
     ///
     /// let cmd = Command::new("test")
-    ///     .arg(Arg::new("target").long("target").value_name("TARGET").action(clap::ArgAction::Set));
-    /// let matches = cmd.try_get_matches_from(vec!["test", "--target", "foo"]).unwrap();
+    ///     .arg(Arg::new("exact").long("exact").value_name("EXACT").action(clap::ArgAction::Set));
+    /// let matches = cmd.try_get_matches_from(vec!["test", "--exact", "foo"]).unwrap();
     ///
     /// let strategy = SearchStrategyFactory::make(
     ///     &matches,
     ///     FrequencyStrategyFactory::make_for_testing()
     /// );
-    /// assert_eq!(strategy.strategy_type(), SearchStrategyType::Target);
+    /// assert_eq!(strategy.strategy_type(), SearchStrategyType::Exact);
     /// ```
     pub fn make(
         inputs: &ArgMatches,
         frequency_strategy: Box<dyn FrequencyStrategy>,
     ) -> Box<dyn SearchStrategy> {
-        if let Some(target) = inputs.get_one::<String>("target") {
-            return Box::new(TargetSearchStrategy::new(
-                target.clone(),
-                frequency_strategy,
-            ));
+        if let Some(exact) = inputs.get_one::<String>("exact") {
+            return Box::new(ExactSearchStrategy::new(exact.clone(), frequency_strategy));
         } else if let Some(regex) = inputs.get_one::<String>("regex") {
             return Box::new(RegexSearchStrategy::new(regex.clone(), frequency_strategy));
         } else if let Some(between) = inputs.get_many::<String>("between") {
@@ -83,9 +80,9 @@ mod tests {
     fn get_command() -> Command {
         Command::new("test")
             .arg(
-                Arg::new("target")
-                    .long("target")
-                    .value_name("TARGET")
+                Arg::new("exact")
+                    .long("exact")
+                    .value_name("EXACT")
                     .action(clap::ArgAction::Set),
             )
             .arg(
@@ -108,14 +105,14 @@ mod tests {
     }
 
     #[test]
-    fn test_target_search_strategy() {
+    fn test_exact_search_strategy() {
         let cmd = get_command();
         let matches = cmd
-            .try_get_matches_from(vec!["test", "--target", "foo"])
+            .try_get_matches_from(vec!["test", "--exact", "foo"])
             .unwrap();
         let strategy =
             SearchStrategyFactory::make(&matches, FrequencyStrategyFactory::make_for_testing());
-        assert_eq!(strategy.strategy_type(), SearchStrategyType::Target);
+        assert_eq!(strategy.strategy_type(), SearchStrategyType::Exact);
     }
 
     #[test]

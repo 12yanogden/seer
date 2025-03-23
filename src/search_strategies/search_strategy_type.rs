@@ -1,6 +1,6 @@
 #[derive(PartialEq, Debug)]
 pub enum SearchStrategyType {
-    Target,
+    Exact,
     Regex,
     Between,
 }

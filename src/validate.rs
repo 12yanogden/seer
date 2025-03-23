@@ -15,9 +15,9 @@ use clap::{error::ErrorKind, ArgMatches};
 ///
 /// ```
 /// use clap::error::ErrorKind;
-/// use seek::{init, validate_input};
+/// use parse::{init, validate_input};
 ///
-/// let matches = init().try_get_matches_from(vec!["seek", "--target", "foo", "--text", "bar"]);
+/// let matches = init().try_get_matches_from(vec!["parse", "--exact", "foo", "--text", "bar"]);
 /// assert!(matches.is_ok());
 /// let pipe = Some(String::from("piped input"));
 /// let matches = validate_input(&matches.unwrap(), &pipe);
@@ -46,9 +46,9 @@ pub fn validate_input(matches: &ArgMatches, pipe: &Option<String>) -> Result<(),
 ///
 /// ```
 /// use clap::error::ErrorKind;
-/// use seek::{init, verify_searchable_or_pipe_is_given};
+/// use parse::{init, verify_searchable_or_pipe_is_given};
 ///
-/// let matches = init().try_get_matches_from(vec!["seek", "--target", "foo"]);
+/// let matches = init().try_get_matches_from(vec!["parse", "--exact", "foo"]);
 /// assert!(matches.is_ok());
 /// let binding = matches.unwrap();
 /// let pipe = Some(String::from("piped input"));
@@ -87,7 +87,7 @@ mod verify_searchable_or_pipe_is_given_tests {
 
     #[test]
     fn test_throw_missing_required_argument_if_no_searchable_given() {
-        let matches = init().try_get_matches_from(vec!["seek", "--target", "foo"]);
+        let matches = init().try_get_matches_from(vec!["parse", "--exact", "foo"]);
         assert!(matches.is_ok());
         let binding = matches.unwrap();
         let result = verify_searchable_or_pipe_is_given(&binding, &None);
@@ -116,9 +116,9 @@ mod verify_searchable_or_pipe_is_given_tests {
 ///
 /// ```
 /// use clap::{Arg, ArgGroup, Command, error::ErrorKind};
-/// use seek::{init, verify_required_option_for_dependent_flag};
+/// use parse::{init, verify_required_option_for_dependent_flag};
 ///
-/// let matches = init().try_get_matches_from(vec!["seek", "--between", "foo", "bar", "--text", "bar", "--exclude_matches"]);
+/// let matches = init().try_get_matches_from(vec!["parse", "--between", "foo", "bar", "--text", "bar", "--exclude_matches"]);
 /// assert!(matches.is_ok());
 /// let binding = matches.unwrap();
 /// let result = verify_required_option_for_dependent_flag(&binding, "between", "exclude_matches");
@@ -159,8 +159,8 @@ mod verify_required_option_for_dependent_flag_tests {
     fn test_throw_missing_required_argument_if_no_required_option_given() {
         // Test with only --exclude_matches
         let matches = CMD.clone().try_get_matches_from(vec![
-            "seek",
-            "--target",
+            "parse",
+            "--exact",
             "foo",
             "--text",
             "bar",
@@ -180,7 +180,7 @@ mod verify_required_option_for_dependent_flag_tests {
         // Test without --exclude_matches
         let matches = CMD
             .clone()
-            .try_get_matches_from(vec!["seek", "--target", "foo", "--text", "bar"]);
+            .try_get_matches_from(vec!["parse", "--exact", "foo", "--text", "bar"]);
         assert!(matches.is_ok());
         let binding = matches.unwrap();
         let matches =

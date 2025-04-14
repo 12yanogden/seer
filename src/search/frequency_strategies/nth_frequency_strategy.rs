@@ -18,7 +18,7 @@ impl NthFrequencyStrategy {
     /// # Examples
     ///
     /// ```
-    /// use parse::frequency_strategies::nth_frequency_strategy::NthFrequencyStrategy;
+    /// use seer::frequency_strategies::nth_frequency_strategy::NthFrequencyStrategy;
     ///
     /// let strategy = NthFrequencyStrategy::new(3);
     /// ```

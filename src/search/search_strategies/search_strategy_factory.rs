@@ -14,7 +14,7 @@ impl SearchStrategyFactory {
     ///
     /// # Arguments
     ///
-    /// * `inputs` - A reference to `ArgMatches` containing the parsed command line arguments.
+    /// * `inputs` - A reference to `ArgMatches` containing the seerd command line arguments.
     /// * `frequency_strategy` - A frequency strategy to be used by the search strategies.
     ///
     /// # Returns
@@ -29,9 +29,9 @@ impl SearchStrategyFactory {
     ///
     /// ```
     /// use clap::{Command, Arg};
-    /// use parse::search_strategies::search_strategy_factory::SearchStrategyFactory;
-    /// use parse::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
-    /// use parse::search_strategies::search_strategy_type::SearchStrategyType;
+    /// use seer::search_strategies::search_strategy_factory::SearchStrategyFactory;
+    /// use seer::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+    /// use seer::search_strategies::search_strategy_type::SearchStrategyType;
     ///
     /// let cmd = Command::new("test")
     ///     .arg(Arg::new("exact").long("exact").value_name("EXACT").action(clap::ArgAction::Set));

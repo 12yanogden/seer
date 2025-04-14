@@ -34,9 +34,9 @@ impl SearchStrategy for ExactSearchStrategy {
     /// # Examples
     ///
     /// ```
-    /// use parse::search_strategies::exact_search_strategy::ExactSearchStrategy;
-    /// use parse::search_strategies::search_strategy::SearchStrategy;
-    /// use parse::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+    /// use seer::search_strategies::exact_search_strategy::ExactSearchStrategy;
+    /// use seer::search_strategies::search_strategy::SearchStrategy;
+    /// use seer::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
     ///
     /// let mut strategy = ExactSearchStrategy::new(
     ///     String::from("test"),

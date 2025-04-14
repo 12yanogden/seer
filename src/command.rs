@@ -168,27 +168,27 @@ fn add_frequency_strategy_options(mut cmd: Command) -> Command {
     )
 }
 
-/// Parses command line arguments using the `clap` crate.
+/// seers command line arguments using the `clap` crate.
 ///
 /// # Returns
 ///
-/// A `Command` instance containing the parsed arguments.
+/// A `Command` instance containing the seerd arguments.
 ///
 /// # Examples
 ///
 /// ```
-/// use parse::init;
+/// use seer::init;
 /// use clap::CommandFactory;
 ///
-/// let cmd = parse::init();
-/// let matches = cmd.override_usage("parse --regex <REGEX> --text <TEXT>")
-///     .try_get_matches_from(vec!["parse", "--regex", "foo", "--text", "test string"])
+/// let cmd = seer::init();
+/// let matches = cmd.override_usage("seer --regex <REGEX> --text <TEXT>")
+///     .try_get_matches_from(vec!["seer", "--regex", "foo", "--text", "test string"])
 ///     .unwrap();
 /// assert_eq!(matches.get_one::<String>("regex").unwrap(), "foo");
 /// assert_eq!(matches.get_one::<String>("text").unwrap(), "test string");
 /// ```
 pub fn init() -> Command {
-    let cmd = Command::new("parse")
+    let cmd = Command::new("seer")
         .version("1.0")
         .author("Ryan Ogden <12yanogden@gmail.com>")
         .about("Find/edit matches in a string or file using plain text or regex patterns.");

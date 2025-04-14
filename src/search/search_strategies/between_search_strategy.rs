@@ -44,9 +44,9 @@ impl SearchStrategy for BetweenSearchStrategy {
     /// # Examples
     ///
     /// ```
-    /// use parse::search_strategies::between_search_strategy::BetweenSearchStrategy;
-    /// use parse::search_strategies::search_strategy::SearchStrategy;
-    /// use parse::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
+    /// use seer::search_strategies::between_search_strategy::BetweenSearchStrategy;
+    /// use seer::search_strategies::search_strategy::SearchStrategy;
+    /// use seer::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
     ///
     /// let mut strategy = BetweenSearchStrategy::new(
     ///     String::from("start"),

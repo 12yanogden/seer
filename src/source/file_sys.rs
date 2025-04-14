@@ -13,7 +13,7 @@ use std::path::PathBuf;
 /// ```
 /// use std::fs::File;
 /// use tempfile::tempdir;
-/// use parse::get_file_paths_from_dir;
+/// use seer::get_file_paths_from_dir;
 ///
 /// let dir = tempdir().unwrap();
 /// let dir_path = dir.path();
@@ -100,7 +100,7 @@ mod get_file_paths_from_dir_tests {
 /// # Examples
 ///
 /// ```
-/// use parse::read_file;
+/// use seer::read_file;
 /// use tempfile::NamedTempFile;
 /// use std::io::Write;
 ///

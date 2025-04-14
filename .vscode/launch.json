@@ -12,7 +12,7 @@
                     "--lib"
                 ]
             },
-            "program": "${workspaceFolder}/target/debug/seek",
+            "program": "${workspaceFolder}/target/debug/parse",
             "args": [],
             "sourceLanguages": ["rust"],
             "preLaunchTask": "cargo build"
@@ -27,7 +27,7 @@
                     "--doc"
                 ]
             },
-            "program": "${workspaceFolder}/target/debug/seek",
+            "program": "${workspaceFolder}/target/debug/parse",
             "args": [],
             "sourceLanguages": ["rust"],
             "preLaunchTask": "cargo build"

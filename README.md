@@ -1,4 +1,4 @@
-# seek
+# parse
 
 A terminal command to replace pattern matches in a string given with a replacement string given. As a critique on the sed command, replace aims to be more explicit and readable.
 
@@ -87,7 +87,7 @@ foo foo bar foo
 
 - [ ] Add --file option
 - [ ] Add --between option
-- [ ] Rename to seek, update README
+- [ ] Rename to parse, update README
 - [ ] Make replacement optional. If not provided, behave as find.
 - [ ] Add --whole_line option to consider the whole line as the match. Whole lines when using - [ ]-between.
 - [ ] Add --count option

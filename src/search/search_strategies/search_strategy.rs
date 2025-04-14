@@ -1,4 +1,4 @@
-use crate::hit::Hit;
+use super::hit::Hit;
 use super::search_strategy_type::SearchStrategyType;
 
 pub trait SearchStrategy {

@@ -10,7 +10,7 @@ use parse::{get_file_paths_from_dir, get_searchable, init, read_file, read_pipe,
 /// cargo run -- --exact "foo" --text "bar"
 /// ```
 fn main() {
-    let inputs = init().get_matches();
+    let inputs = CommandBuilder.build().get_matches();
     let pipe = read_pipe();
 
     // Validate input

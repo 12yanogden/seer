@@ -1,6 +1,6 @@
+use super::hit::Hit;
+use super::strategies::search_strategy_factory::SearchStrategyFactory;
 use crate::frequency_strategies::frequency_strategy_factory::FrequencyStrategyFactory;
-use crate::hit::Hit;
-use crate::search_strategies::search_strategy_factory::SearchStrategyFactory;
 use clap::ArgMatches;
 
 pub fn search(inputs: &ArgMatches, searchable: String) -> Vec<Hit> {

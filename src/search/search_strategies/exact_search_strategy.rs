@@ -1,7 +1,7 @@
+use super::hit::Hit;
 use super::search_strategy::SearchStrategy;
 use super::search_strategy_type::SearchStrategyType;
 use crate::frequency_strategies::frequency_strategy::FrequencyStrategy;
-use crate::hit::Hit;
 
 /// A search strategy that finds occurrences of a exact string.
 pub struct ExactSearchStrategy {

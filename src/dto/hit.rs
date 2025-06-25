@@ -1,18 +1,18 @@
 #[derive(Debug)]
 pub struct Hit {
-    value: String,
     position: usize,
+    length: usize,
 }
 
 impl Hit {
     // Constructor for Hit
-    pub fn new(value: String, position: usize) -> Self {
-        Self { value, position }
+    pub fn new(position: usize, length: usize) -> Self {
+        Self { position, length }
     }
 
-    // Returns the length of the string value.
+    // Returns the length.
     pub fn get_length(&self) -> usize {
-        self.value.len()
+        self.length
     }
 
     // Returns the position integer.
@@ -20,19 +20,14 @@ impl Hit {
         self.position
     }
 
-    // Returns the end position (position + length).
+    // Returns the end position (position + length - 1).
     pub fn get_end_position(&self) -> usize {
-        self.position + self.get_length() - 1
+        self.position + self.length - 1
     }
 
-    // Returns the value string.
-    pub fn get_value(&self) -> &str {
-        &self.value
-    }
-
-    // Sets the value string.
-    pub fn set_value(&mut self, value: String) {
-        self.value = value;
+    // Sets the length.
+    pub fn set_length(&mut self, length: usize) {
+        self.length = length;
     }
 
     // Sets the position integer.
@@ -47,38 +42,32 @@ mod tests {
 
     #[test]
     fn test_hit_length() {
-        let h = Hit::new(String::from("test"), 5);
+        let h = Hit::new(5, 4);
         assert_eq!(h.get_length(), 4);
     }
 
     #[test]
     fn test_hit_position() {
-        let h = Hit::new(String::from("test"), 5);
+        let h = Hit::new(5, 4);
         assert_eq!(h.get_position(), 5);
     }
 
     #[test]
     fn test_hit_end_position() {
-        let h = Hit::new(String::from("test"), 5);
+        let h = Hit::new(5, 4);
         assert_eq!(h.get_end_position(), 8);
     }
 
     #[test]
-    fn test_hit_value() {
-        let h = Hit::new(String::from("test"), 5);
-        assert_eq!(h.get_value(), "test");
-    }
-
-    #[test]
-    fn test_set_value() {
-        let mut h = Hit::new(String::from("test"), 5);
-        h.set_value(String::from("new_value"));
-        assert_eq!(h.get_value(), "new_value");
+    fn test_set_length() {
+        let mut h = Hit::new(5, 4);
+        h.set_length(10);
+        assert_eq!(h.get_length(), 10);
     }
 
     #[test]
     fn test_set_position() {
-        let mut h = Hit::new(String::from("test"), 5);
+        let mut h = Hit::new(5, 4);
         h.set_position(10);
         assert_eq!(h.get_position(), 10);
     }

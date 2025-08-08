@@ -19,19 +19,15 @@ pub trait CommandBuilder {
 
 pub struct BuildCommandHandler;
 
-impl<'a> Handler<'a> for BuildCommandHandler {
-    fn handle(&mut self, dto: &mut DTO<'a>) {
-        let cmd_data = dto.clone_command_data();
+impl BuildCommandHandler {
+    pub fn new() -> Self {
+        Self
+    }
+}
 
-        let name: &'static str = Box::leak(cmd_data.clone_name().into_boxed_str());
-        let version: &'static str = Box::leak(cmd_data.clone_version().into_boxed_str());
-        let author: &'static str = Box::leak(cmd_data.clone_author().into_boxed_str());
-        let about: &'static str = Box::leak(cmd_data.clone_about().into_boxed_str());
-
-        let mut cmd = Command::new(name)
-            .version(version)
-            .author(author)
-            .about(about);
+impl Handler for BuildCommandHandler {
+    fn handle(&mut self, dto: &mut DTO) {
+        let mut cmd = dto_to_command(&dto);
 
         // Add arguments
         AllArgBuilder::build(&mut cmd);
@@ -64,4 +60,55 @@ impl<'a> Handler<'a> for BuildCommandHandler {
 
         dto.set_inputs(cmd.get_matches());
     }
+}
+
+/// Build a `clap::Command` from a DTO, including all arguments and argument groups.
+///
+/// # Example
+/// ```
+/// use seer::dto::dto::DTO;
+/// use seer::handlers::build_command_handler::dto_to_command;
+///
+/// let dto = DTO::new("test_command", "1.0", "author_name", "description");
+/// let cmd = dto_to_command(&dto);
+/// assert_eq!(cmd.get_name(), "test_command");
+/// ```
+pub fn dto_to_command(dto: &DTO) -> clap::Command {
+    let cmd_data = dto.clone_command_data();
+
+    let name: &'static str = Box::leak(cmd_data.clone_name().into_boxed_str());
+    let version: &'static str = Box::leak(cmd_data.clone_version().into_boxed_str());
+    let author: &'static str = Box::leak(cmd_data.clone_author().into_boxed_str());
+    let about: &'static str = Box::leak(cmd_data.clone_about().into_boxed_str());
+
+    let cmd = clap::Command::new(name)
+        .version(version)
+        .author(author)
+        .about(about);
+
+    cmd
+}
+
+/// Applies a list of argument builder functions to a `clap::Command` created from the given DTO.
+///
+/// # Example
+/// ```
+/// use seer::dto::dto::DTO;
+/// use seer::handlers::build_command_handler::{apply_arg_builders, dto_to_command};
+/// use seer::arg_buliders::text_arg_builder::TextArgBuilder;
+/// use clap::Command;
+///
+/// let dto = DTO::new("test_command", "1.0", "author_name", "description");
+/// let builders: Vec<fn(&mut Command)> = vec![TextArgBuilder::build];
+/// let mut cmd = apply_arg_builders(&dto, builders);
+/// // Now `cmd` has the --text argument
+/// let matches = cmd.try_get_matches_from(vec!["test_command", "--text", "hello"]);
+/// assert!(matches.is_ok());
+/// ```
+pub fn apply_arg_builders(dto: &mut DTO, arg_builders: Vec<fn(&mut Command)>) -> clap::Command {
+    let mut cmd = dto_to_command(dto);
+    for builder in arg_builders {
+        builder(&mut cmd);
+    }
+    cmd
 }

@@ -6,8 +6,8 @@ pub struct ExcludeMatchesArgGroupBuilder;
 impl CommandBuilder for ExcludeMatchesArgGroupBuilder {
     /// Builds the `exclude_matches_arg_group` argument group and adds it to the given command.
     ///
-    /// The group includes the `--exclude_matches` argument and requires the `--find_between` argument
-    /// to be present when `--exclude_matches` is used.
+    /// The group includes the `--exclude-matches` argument and requires the `--find-between` argument
+    /// to be present when `--exclude-matches` is used.
     ///
     /// # Arguments
     ///
@@ -31,27 +31,27 @@ impl CommandBuilder for ExcludeMatchesArgGroupBuilder {
     /// let group = cmd.get_groups().find(|group| group.get_id() == "exclude_matches_arg_group");
     /// assert!(group.is_some(), "The 'exclude_matches_arg_group' was not added to the command.");
     ///
-    /// // Test with only --exclude_matches
-    /// let matches = cmd.clone().try_get_matches_from(vec!["test_command", "--exclude_matches"]);
+    /// // Test with only --exclude-matches
+    /// let matches = cmd.clone().try_get_matches_from(vec!["test_command", "--exclude-matches"]);
     /// assert!(matches.is_err());
     /// let err = matches.unwrap_err();
     /// assert_eq!(err.kind(), ErrorKind::MissingRequiredArgument);
     ///
-    /// // Test with --find_between and --exclude_matches
+    /// // Test with --find-between and --exclude-matches
     /// let matches = cmd.clone().try_get_matches_from(vec![
     ///     "test_command",
-    ///     "--find_between",
+    ///     "--find-between",
     ///     "foo",
     ///     "bar",
-    ///     "--exclude_matches",
+    ///     "--exclude-matches",
     /// ]);
     /// assert!(matches.is_ok());
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.group(
+        *cmd = cmd.clone().group(
             ArgGroup::new("exclude_matches_arg_group")
-                .args(["exclude_matches"])
-                .requires("find_between"),
+                .args(["exclude-matches"])
+                .requires("find-between"),
         );
     }
 }
@@ -66,10 +66,10 @@ mod tests {
         let mut cmd = Command::new("test_command");
         ExcludeMatchesArgGroupBuilder::build(&mut cmd);
 
-        // Test with only --find_between
+        // Test with only --find-between
         let matches =
             cmd.clone()
-                .try_get_matches_from(vec!["test_command", "--find_between", "foo", "bar"]);
+                .try_get_matches_from(vec!["test_command", "--find-between", "foo", "bar"]);
         assert!(matches.is_ok());
     }
 }

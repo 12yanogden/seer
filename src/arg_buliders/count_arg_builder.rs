@@ -27,7 +27,7 @@ impl CommandBuilder for CountArgBuilder {
     /// assert!(matches.get_one::<bool>("count").copied().unwrap_or(false), "The 'count' argument did not return true.");
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
+        *cmd = cmd.clone().arg(
             Arg::new("count")
                 .long("count")
                 .help("Count all matches")

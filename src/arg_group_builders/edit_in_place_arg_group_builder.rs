@@ -6,8 +6,9 @@ pub struct EditInPlaceArgGroupBuilder;
 impl CommandBuilder for EditInPlaceArgGroupBuilder {
     /// Builds the `edit_in_place_arg_group` argument group and adds it to the given command.
     ///
-    /// The group includes the `--edit_in_place` argument and requires one of the `--dir`, `--file`,
-    /// or `--files` arguments to be present when `--edit_in_place` is used.
+    /// The `--edit-in-place` argument requires:
+    /// 1. At least one edit operation argument: `--append`, `--prepend`, or `--replace-with`
+    /// 2. At least one target argument: `--dir`, `--file`, or `--files`
     ///
     /// # Arguments
     ///
@@ -27,26 +28,48 @@ impl CommandBuilder for EditInPlaceArgGroupBuilder {
     /// let mut cmd = Command::new("test_command");
     /// EditInPlaceArgGroupBuilder::build(&mut cmd);
     ///
-    /// // Test with only --edit_in_place
-    /// let matches = cmd.clone().try_get_matches_from(vec!["test_command", "--edit_in_place"]);
+    /// // Test with only --edit-in-place (should fail)
+    /// let matches = cmd.clone().try_get_matches_from(vec!["test_command", "--edit-in-place"]);
     /// assert!(matches.is_err());
     /// let err = matches.unwrap_err();
     /// assert_eq!(err.kind(), ErrorKind::MissingRequiredArgument);
     ///
-    /// // Test with --edit_in_place and --dir
+    /// // Test with --edit-in-place, --append, and --dir (should pass)
     /// let matches = cmd.clone().try_get_matches_from(vec![
     ///     "test_command",
-    ///     "--edit_in_place",
+    ///     "--edit-in-place",
+    ///     "--append",
+    ///     "text",
     ///     "--dir",
     ///     "some_dir",
     /// ]);
     /// assert!(matches.is_ok());
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.group(
-            ArgGroup::new("edit_in_place_arg_group")
-                .args(["edit_in_place"])
-                .requires_all(&["dir", "file", "files"]),
+        // Create target group - when edit-in-place is used, require at least one target
+        *cmd = cmd.clone().group(
+            ArgGroup::new("edit_target_group")
+                .args(&["dir", "file", "files"])
+                .required(false)
+                .multiple(false),
+        );
+        
+        // Create edit operation group - when edit-in-place is used, require at least one edit operation
+        *cmd = cmd.clone().group(
+            ArgGroup::new("edit_operation_group")
+                .args(&["append", "prepend", "replace-with"])
+                .required(false)
+                .multiple(false),
+        );
+        
+        // Create a group that makes edit-in-place conditional on having both
+        // a target and an edit operation. When edit-in-place is present, both groups become required.
+        *cmd = cmd.clone().group(
+            ArgGroup::new("edit_in_place_requirements")
+                .args(&["edit-in-place"])
+                .requires("edit_target_group")
+                .requires("edit_operation_group")
+                .required(false),
         );
     }
 }
@@ -65,10 +88,34 @@ mod tests {
     }
 
     #[test]
-    fn test_edit_in_place_allowed_with_file() {
+    fn test_edit_in_place_fails_without_edit_operation() {
         let matches = CMD.clone().try_get_matches_from(vec![
             "test_command",
-            "--edit_in_place",
+            "--edit-in-place",
+            "--file",
+            "some_file",
+        ]);
+        assert!(matches.is_err(), "edit-in-place should require an edit operation");
+    }
+
+    #[test]
+    fn test_edit_in_place_fails_without_target() {
+        let matches = CMD.clone().try_get_matches_from(vec![
+            "test_command",
+            "--edit-in-place",
+            "--append",
+            "text",
+        ]);
+        assert!(matches.is_err(), "edit-in-place should require a target argument");
+    }
+
+    #[test]
+    fn test_edit_in_place_allowed_with_file_and_append() {
+        let matches = CMD.clone().try_get_matches_from(vec![
+            "test_command",
+            "--edit-in-place",
+            "--append",
+            "text",
             "--file",
             "some_file",
         ]);
@@ -76,14 +123,38 @@ mod tests {
     }
 
     #[test]
-    fn test_edit_in_place_allowed_with_files() {
+    fn test_edit_in_place_allowed_with_files_and_prepend() {
         let matches = CMD.clone().try_get_matches_from(vec![
             "test_command",
-            "--edit_in_place",
+            "--edit-in-place",
+            "--prepend",
+            "prefix",
             "--files",
             "file1",
             "file2",
         ]);
         assert!(matches.is_ok());
+    }
+
+    #[test]
+    fn test_edit_in_place_allowed_with_dir_and_replace_with() {
+        let matches = CMD.clone().try_get_matches_from(vec![
+            "test_command",
+            "--edit-in-place",
+            "--replace-with",
+            "replacement",
+            "--dir",
+            "some_dir",
+        ]);
+        assert!(matches.is_ok());
+    }
+
+    #[test]
+    fn test_edit_in_place_fails_with_only_flag() {
+        let matches = CMD.clone().try_get_matches_from(vec![
+            "test_command",
+            "--edit-in-place",
+        ]);
+        assert!(matches.is_err(), "edit-in-place should fail when used alone");
     }
 }

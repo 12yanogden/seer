@@ -16,14 +16,14 @@ impl CommandBuilder for FrequencyArgGroupBuilder {
     /// let mut cmd = Command::new("test_command");
     /// FrequencyArgGroupBuilder::build(&mut cmd);
     ///
-    /// // Frequency arguments like `all` cannot be used with other frequency arguments like `every_nth`.
-    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--all", "--every_nth"]);
-    /// assert!(matches.is_err(), "The 'all' argument was used with 'every_nth'.");
+    /// // Frequency arguments like `all` cannot be used with other frequency arguments like `every-nth`.
+    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--all", "--every-nth"]);
+    /// assert!(matches.is_err(), "The 'all' argument was used with 'every-nth'.");
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.group(
+        *cmd = cmd.clone().group(
             ArgGroup::new("frequency_arg_group")
-                .args(&["all", "every_nth", "nth"])
+                .args(&["all", "every-nth", "nth"])
                 .multiple(false),
         );
     }
@@ -45,20 +45,20 @@ mod tests {
     #[test]
     fn all_cannot_be_used_with_every_nth() {
         let cmd = CMD.clone();
-        let matches = cmd.try_get_matches_from(vec!["test_command", "--all", "--every_nth"]);
+        let matches = cmd.try_get_matches_from(vec!["test_command", "--all", "--every-nth"]);
         assert!(
             matches.is_err(),
-            "The 'all' argument was used with 'every_nth'."
+            "The 'all' argument was used with 'every-nth'."
         );
     }
 
     #[test]
     fn every_nth_cannot_be_used_with_nth() {
         let cmd = CMD.clone();
-        let matches = cmd.try_get_matches_from(vec!["test_command", "--every_nth", "--nth"]);
+        let matches = cmd.try_get_matches_from(vec!["test_command", "--every-nth", "--nth"]);
         assert!(
             matches.is_err(),
-            "The 'every_nth' argument was used with 'nth'."
+            "The 'every-nth' argument was used with 'nth'."
         );
     }
 }

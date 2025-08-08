@@ -4,9 +4,9 @@ use clap::{builder::NonEmptyStringValueParser, Arg, Command};
 pub struct FindStringArgBuilder;
 
 impl CommandBuilder for FindStringArgBuilder {
-    /// Adds the `--find_string` argument to the given command.
+    /// Adds the `--find-string` argument to the given command.
     ///
-    /// The `--find_string` argument requires a non-empty string value to be provided.
+    /// The `--find-string` argument requires a non-empty string value to be provided.
     ///
     /// # Examples
     ///
@@ -18,24 +18,24 @@ impl CommandBuilder for FindStringArgBuilder {
     /// let mut cmd = Command::new("test_command");
     /// FindStringArgBuilder::build(&mut cmd);
     ///
-    /// // The `--find_string` argument should be added to the command.
-    /// let find_string_arg = cmd.get_arguments().find(|arg| arg.get_id() == "find_string");
-    /// assert!(find_string_arg.is_some(), "The 'find_string' argument was not added.");
+    /// // The `--find-string` argument should be added to the command.
+    /// let find_string_arg = cmd.get_arguments().find(|arg| arg.get_id() == "find-string");
+    /// assert!(find_string_arg.is_some(), "The 'find-string' argument was not added.");
     ///
-    /// // The `--find_string` argument should accept a string.
-    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--find_string", "string_value"]);
-    /// assert!(matches.is_ok(), "The 'find_string' argument did not accept a value.");
+    /// // The `--find-string` argument should accept a string.
+    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--find-string", "string_value"]);
+    /// assert!(matches.is_ok(), "The 'find-string' argument did not accept a value.");
     /// let matches = matches.unwrap();
     /// assert_eq!(
-    ///     matches.get_one::<String>("find_string").unwrap(),
+    ///     matches.get_one::<String>("find-string").unwrap(),
     ///     "string_value",
-    ///     "The 'find_string' argument did not capture the correct value."
+    ///     "The 'find-string' argument did not capture the correct value."
     /// );
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
-            Arg::new("find_string")
-                .long("find_string")
+        *cmd = cmd.clone().arg(
+            Arg::new("find-string")
+                .long("find-string")
                 .value_name("STRING_VALUE")
                 .value_parser(NonEmptyStringValueParser::new())
                 .help("Find matches using the given string value"),
@@ -54,10 +54,10 @@ mod tests {
         FindStringArgBuilder::build(&mut cmd);
 
         // Test with no value
-        let matches = cmd.try_get_matches_from(vec!["test_command", "--find_string"]);
+        let matches = cmd.try_get_matches_from(vec!["test_command", "--find-string"]);
         assert!(
             matches.is_err(),
-            "The 'find_string' argument did not require a value."
+            "The 'find-string' argument did not require a value."
         );
     }
 }

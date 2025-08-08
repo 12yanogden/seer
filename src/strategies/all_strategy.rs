@@ -48,8 +48,8 @@ impl Strategy for AllStrategy {
     /// let hits = dto.get_hits();
     /// assert_eq!(hits.len(), 2);
     /// ```
-    fn run(&self, dto: &mut DTO) {
-        dto
+    fn run(&self, _dto: &mut DTO) {
+        // All strategy does not modify the DTO - all hits are included
     }
 }
 

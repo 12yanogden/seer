@@ -4,9 +4,9 @@ use clap::{Arg, Command};
 pub struct FindBetweenArgBuilder;
 
 impl CommandBuilder for FindBetweenArgBuilder {
-    /// Adds the `--find_between` argument to the given command.
+    /// Adds the `--find-between` argument to the given command.
     ///
-    /// The `--find_between` argument requires exactly two string values to be provided.
+    /// The `--find-between` argument requires exactly two string values to be provided.
     ///
     /// # Examples
     ///
@@ -18,21 +18,21 @@ impl CommandBuilder for FindBetweenArgBuilder {
     /// let mut cmd = Command::new("test_command");
     /// FindBetweenArgBuilder::build(&mut cmd);
     ///
-    /// // The `--find_between` argument should be added to the command.
-    /// let find_between_arg = cmd.get_arguments().find(|arg| arg.get_id() == "find_between");
-    /// assert!(find_between_arg.is_some(), "The 'find_between' argument was not added.");
+    /// // The `--find-between` argument should be added to the command.
+    /// let find_between_arg = cmd.get_arguments().find(|arg| arg.get_id() == "find-between");
+    /// assert!(find_between_arg.is_some(), "The 'find-between' argument was not added.");
     ///
-    /// // The `--find_between` argument should accept exactly two strings.
-    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--find_between", "start", "end"]);
-    /// assert!(matches.is_ok(), "The 'find_between' argument did not accept two values.");
+    /// // The `--find-between` argument should accept exactly two strings.
+    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--find-between", "start", "end"]);
+    /// assert!(matches.is_ok(), "The 'find-between' argument did not accept two values.");
     /// let matches = matches.unwrap();
-    /// let values: Vec<_> = matches.get_many::<String>("find_between").unwrap().collect();
-    /// assert_eq!(values, vec!["start", "end"], "The 'find_between' argument did not capture the correct values.");
+    /// let values: Vec<_> = matches.get_many::<String>("find-between").unwrap().collect();
+    /// assert_eq!(values, vec!["start", "end"], "The 'find-between' argument did not capture the correct values.");
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
-            Arg::new("find_between")
-                .long("find_between")
+        *cmd = cmd.clone().arg(
+            Arg::new("find-between")
+                .long("find-between")
                 .value_names(["START", "END"])
                 .num_args(2)
                 .help("Find matches between the given start and end strings"),
@@ -53,17 +53,17 @@ mod tests {
         // Test with no values
         let matches = cmd
             .clone()
-            .try_get_matches_from(vec!["test_command", "--find_between"]);
+            .try_get_matches_from(vec!["test_command", "--find-between"]);
         assert!(
             matches.is_err(),
-            "The 'find_between' argument did not require two values."
+            "The 'find-between' argument did not require two values."
         );
 
         // Test with one value
-        let matches = cmd.try_get_matches_from(vec!["test_command", "--find_between", "start"]);
+        let matches = cmd.try_get_matches_from(vec!["test_command", "--find-between", "start"]);
         assert!(
             matches.is_err(),
-            "The 'find_between' argument did not require exactly two values."
+            "The 'find-between' argument did not require exactly two values."
         );
     }
 }

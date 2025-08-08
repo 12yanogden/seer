@@ -1,13 +1,20 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Hit {
+    value: String,
     position: usize,
     length: usize,
 }
 
 impl Hit {
     // Constructor for Hit
-    pub fn new(position: usize, length: usize) -> Self {
-        Self { position, length }
+    pub fn new(value: String, position: usize) -> Self {
+        let length = value.len();
+        Self { value, position, length }
+    }
+
+    // Returns the value string.
+    pub fn get_value(&self) -> &str {
+        &self.value
     }
 
     // Returns the length.
@@ -41,33 +48,39 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_hit_value() {
+        let h = Hit::new("test".to_string(), 5);
+        assert_eq!(h.get_value(), "test");
+    }
+
+    #[test]
     fn test_hit_length() {
-        let h = Hit::new(5, 4);
+        let h = Hit::new("test".to_string(), 5);
         assert_eq!(h.get_length(), 4);
     }
 
     #[test]
     fn test_hit_position() {
-        let h = Hit::new(5, 4);
+        let h = Hit::new("test".to_string(), 5);
         assert_eq!(h.get_position(), 5);
     }
 
     #[test]
     fn test_hit_end_position() {
-        let h = Hit::new(5, 4);
+        let h = Hit::new("test".to_string(), 5);
         assert_eq!(h.get_end_position(), 8);
     }
 
     #[test]
     fn test_set_length() {
-        let mut h = Hit::new(5, 4);
+        let mut h = Hit::new("test".to_string(), 5);
         h.set_length(10);
         assert_eq!(h.get_length(), 10);
     }
 
     #[test]
     fn test_set_position() {
-        let mut h = Hit::new(5, 4);
+        let mut h = Hit::new("test".to_string(), 5);
         h.set_position(10);
         assert_eq!(h.get_position(), 10);
     }

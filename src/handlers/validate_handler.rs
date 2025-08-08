@@ -1,190 +1,131 @@
-// use clap::{error::ErrorKind, ArgMatches};
+use crate::dto::dto::DTO;
+use crate::handlers::handler::Handler;
 
-// /// Validates the input arguments.
-// ///
-// /// # Arguments
-// ///
-// /// * `matches` - A reference to the `clap::ArgMatches` instance.
-// /// * `pipe` - An `Option<String>` containing the piped input.
-// ///
-// /// # Returns
-// ///
-// /// A `Result` which is `Ok(())` if the validation passes, or an `Err` with `ErrorKind::MissingRequiredArgument` if it fails.
-// ///
-// /// # Examples
-// ///
-// /// ```
-// /// use clap::error::ErrorKind;
-// /// use seer::{init, validate_input};
-// ///
-// /// let matches = init().try_get_matches_from(vec!["seer", "--exact", "foo", "--text", "bar"]);
-// /// assert!(matches.is_ok());
-// /// let pipe = Some(String::from("piped input"));
-// /// let matches = validate_input(&matches.unwrap(), &pipe);
-// /// assert!(matches.is_ok());
-// /// ```
-// pub fn validate_input(matches: &ArgMatches, pipe: &Option<String>) -> Result<(), clap::Error> {
-//     verify_searchable_or_pipe_is_given(matches, pipe)?;
-//     verify_required_option_for_dependent_flag(matches, "between", "exclude_matches")?;
-//     verify_required_option_for_dependent_flag(matches, "file", "in_place")?;
-//     verify_required_option_for_dependent_flag(matches, "dir", "max_depth")?;
-//     Ok(())
-// }
+/// Handler for validating DTOs.
+///
+/// # Example
+/// ```
+/// use seer::handlers::validate_handler::ValidateHandler;
+/// use seer::handlers::handler::Handler;
+/// use seer::dto::dto::DTO;
+///
+/// let mut handler = ValidateHandler;
+/// let mut dto = DTO::new("test_command", "1.0", "author_name", "description",);
+/// handler.handle(&mut dto);
+/// // The DTO is validated. No errors thrown.
+/// ```
+pub struct ValidateHandler;
 
-// /// Verifies that either a searchable argument or piped input is provided.
-// ///
-// /// # Arguments
-// ///
-// /// * `matches` - A reference to the `clap::ArgMatches` instance.
-// /// * `pipe` - An `Option<String>` containing the piped input.
-// ///
-// /// # Returns
-// ///
-// /// A `Result` which is `Ok(())` if the validation passes, or an `Err` with `ErrorKind::MissingRequiredArgument` if it fails.
-// ///
-// /// # Examples
-// ///
-// /// ```
-// /// use clap::error::ErrorKind;
-// /// use seer::{init, verify_searchable_or_pipe_is_given};
-// ///
-// /// let matches = init().try_get_matches_from(vec!["seer", "--exact", "foo"]);
-// /// assert!(matches.is_ok());
-// /// let binding = matches.unwrap();
-// /// let pipe = Some(String::from("piped input"));
-// /// let result = verify_searchable_or_pipe_is_given(&binding, &pipe);
-// /// assert!(result.is_ok());
-// /// ```
-// pub fn verify_searchable_or_pipe_is_given<'a>(
-//     matches: &'a clap::ArgMatches,
-//     pipe: &Option<String>,
-// ) -> Result<&'a clap::ArgMatches, clap::Error> {
-//     if matches.contains_id("text")
-//         || matches.contains_id("file")
-//         || matches.contains_id("dir")
-//         || pipe.is_some()
-//     {
-//         Ok(matches)
-//     } else {
-//         Err(clap::Error::raw(
-//             ErrorKind::MissingRequiredArgument,
-//             "Either a searchable argument (text, file, or dir) or piped input must be provided.",
-//         ))
-//     }
-// }
+impl Handler for ValidateHandler {
+    fn handle(&mut self, dto: &mut DTO) {
+        verify_a_source_was_given(dto);
+        verify_file_sys_paths(dto);
+    }
+}
 
-// #[cfg(test)]
-// mod verify_searchable_or_pipe_is_given_tests {
-//     use clap::Command;
+/// Checks that at least one of the source options ("dir", "file", "files", or "text")
+/// is present in the DTO's inputs.
+///
+/// # Example
+/// ```
+/// use seer::dto::dto::DTO;
+/// use seer::handlers::validate_handler::verify_a_source_was_given;
+/// use seer::arg_buliders::text_arg_builder::TextArgBuilder;
+/// use clap::Command;
+///
+/// let mut cmd = Command::new("test_command");
+/// TextArgBuilder::build(&mut cmd);
+/// let matches = cmd.get_matches_from(vec!["test_command", "--text", "hello"]);
+/// let mut dto = DTO::new("test_command", "1.0", "author_name", "description");
+/// dto.set_inputs(matches);
+/// verify_a_source_was_given(&dto);
+/// ```
+fn verify_a_source_was_given(dto: &DTO) {
+    let inputs = dto.get_inputs();
+    let has_source = inputs.as_ref().map_or(false, |inputs| {
+        inputs.contains_id("dir")
+            || inputs.contains_id("file")
+            || inputs.contains_id("files")
+            || inputs.contains_id("text")
+    });
+    if !has_source {
+        panic!("No source provided.");
+    }
+}
 
-//     use crate::init;
+/// Verifies that the values provided to `--dir`, `--file`, and `--files` are valid paths.
+///
+/// - `--dir` must be an existing directory.
+/// - `--file` and each value in `--files` must be existing files.
+///
+/// # Example
+/// ```
+/// use seer::dto::dto::DTO;
+/// use seer::handlers::validate_handler::verify_file_sys_paths;
+/// use seer::arg_buliders::dir_arg_builder::DirArgBuilder;
+/// use seer::arg_buliders::file_arg_builder::FileArgBuilder;
+/// use seer::arg_buliders::files_arg_builder::FilesArgBuilder;
+/// use clap::Command;
+/// use std::fs::{File, create_dir_all};
+/// use std::env::temp_dir;
+///
+/// // Setup temp files and directory
+/// let tmp = temp_dir();
+/// let dir_path = tmp.join("seer_test_dir");
+/// let file_path = tmp.join("seer_test_file.txt");
+/// let files_path1 = tmp.join("seer_test_file1.txt");
+/// let files_path2 = tmp.join("seer_test_file2.txt");
+/// create_dir_all(&dir_path).unwrap();
+/// File::create(&file_path).unwrap();
+/// File::create(&files_path1).unwrap();
+/// File::create(&files_path2).unwrap();
+///
+/// let mut cmd = Command::new("test_command");
+/// DirArgBuilder::build(&mut cmd);
+/// FileArgBuilder::build(&mut cmd);
+/// FilesArgBuilder::build(&mut cmd);
+/// let files_arg = format!("{},{}", files_path1.display(), files_path2.display());
+/// let matches = cmd.get_matches();
+/// let mut dto = DTO::new("test_command", "1.0", "author_name", "description");
+/// dto.set_inputs(matches);
+/// verify_file_sys_paths(&dto); // Should not panic
+/// ```
+fn verify_file_sys_paths(dto: &DTO) {
+    use std::path::Path;
 
-//     use super::*;
-
-//     lazy_static::lazy_static! {
-//         static ref CMD: Command = init();
-//     }
-
-//     #[test]
-//     fn test_throw_missing_required_argument_if_no_searchable_given() {
-//         let matches = init().try_get_matches_from(vec!["seer", "--exact", "foo"]);
-//         assert!(matches.is_ok());
-//         let binding = matches.unwrap();
-//         let result = verify_searchable_or_pipe_is_given(&binding, &None);
-//         assert!(result.is_err());
-//         let err = result.unwrap_err();
-//         assert_eq!(err.kind(), ErrorKind::MissingRequiredArgument);
-//     }
-// }
-
-// /// Verifies that a flag is used with a required option.
-// ///
-// /// This function is only necessary because of GitHub issue #4707:
-// /// https://github.com/clap-rs/clap/issues/4707
-// ///
-// /// # Arguments
-// ///
-// /// * `matches` - A reference to the `clap::ArgMatches` instance.
-// /// * `required_option` - The option required by the flag.
-// /// * `dependent_flag` - The flag that requires the option.
-// ///
-// /// # Returns
-// ///
-// /// A `Result` which is `Ok(&clap::ArgMatches)` if the validation passes, or an `Err` with `ErrorKind::MissingRequiredArgument` if it fails.
-// ///
-// /// # Examples
-// ///
-// /// ```
-// /// use clap::{Arg, ArgGroup, Command, error::ErrorKind};
-// /// use seer::{init, verify_required_option_for_dependent_flag};
-// ///
-// /// let matches = init().try_get_matches_from(vec!["seer", "--between", "foo", "bar", "--text", "bar", "--exclude_matches"]);
-// /// assert!(matches.is_ok());
-// /// let binding = matches.unwrap();
-// /// let result = verify_required_option_for_dependent_flag(&binding, "between", "exclude_matches");
-// /// assert!(result.is_ok());
-// /// ```
-// pub fn verify_required_option_for_dependent_flag<'a>(
-//     matches: &'a clap::ArgMatches,
-//     required_option: &str,
-//     dependent_flag: &str,
-// ) -> Result<&'a clap::ArgMatches, clap::Error> {
-//     if matches.get_one::<bool>(dependent_flag) == Some(&true)
-//         && !matches.contains_id(required_option)
-//     {
-//         return Err(clap::Error::raw(
-//             ErrorKind::MissingRequiredArgument,
-//             format!(
-//                 "The '--{}' option requires the '--{}' option.",
-//                 dependent_flag, required_option
-//             ),
-//         ));
-//     }
-//     Ok(matches)
-// }
-
-// #[cfg(test)]
-// mod verify_required_option_for_dependent_flag_tests {
-//     use clap::Command;
-
-//     use crate::init;
-
-//     use super::*;
-
-//     lazy_static::lazy_static! {
-//         static ref CMD: Command = init();
-//     }
-
-//     #[test]
-//     fn test_throw_missing_required_argument_if_no_required_option_given() {
-//         // Test with only --exclude_matches
-//         let matches = CMD.clone().try_get_matches_from(vec![
-//             "seer",
-//             "--exact",
-//             "foo",
-//             "--text",
-//             "bar",
-//             "--exclude_matches",
-//         ]);
-//         assert!(matches.is_ok());
-//         let binding = matches.unwrap();
-//         let matches =
-//             verify_required_option_for_dependent_flag(&binding, "between", "exclude_matches");
-//         assert!(matches.is_err());
-//         let err = matches.unwrap_err();
-//         assert_eq!(err.kind(), ErrorKind::MissingRequiredArgument);
-//     }
-
-//     #[test]
-//     fn test_return_ok_without_dependent_flag() {
-//         // Test without --exclude_matches
-//         let matches = CMD
-//             .clone()
-//             .try_get_matches_from(vec!["seer", "--exact", "foo", "--text", "bar"]);
-//         assert!(matches.is_ok());
-//         let binding = matches.unwrap();
-//         let matches =
-//             verify_required_option_for_dependent_flag(&binding, "between", "exclude_matches");
-//         assert!(matches.is_ok());
-//     }
-// }
+    let inputs = dto.get_inputs();
+    if let Some(inputs) = inputs.as_ref() {
+        // Check --dir
+        if let Some(dir) = inputs.get_one::<String>("dir") {
+            let path = Path::new(dir);
+            if !path.is_dir() {
+                panic!(
+                    "The path provided to --dir does not exist or is not a directory: {}",
+                    dir
+                );
+            }
+        }
+        // Check --file
+        if let Some(file) = inputs.get_one::<String>("file") {
+            let path = Path::new(file);
+            if !path.is_file() {
+                panic!(
+                    "The path provided to --file does not exist or is not a file: {}",
+                    file
+                );
+            }
+        }
+        // Check --files
+        if let Some(files) = inputs.get_many::<String>("files") {
+            for file in files {
+                let path = Path::new(file);
+                if !path.is_file() {
+                    panic!(
+                        "The path provided in --files does not exist or is not a file: {}",
+                        file
+                    );
+                }
+            }
+        }
+    }
+}

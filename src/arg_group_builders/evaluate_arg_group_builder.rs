@@ -1,10 +1,12 @@
 use crate::handlers::build_command_handler::CommandBuilder;
 use clap::{ArgGroup, Command};
 
+/// Handles mutual exclusivity within Transform phase Evaluation operations
 pub struct EvaluateArgGroupBuilder;
 
 impl CommandBuilder for EvaluateArgGroupBuilder {
-    /// Adds a mutually exclusive argument group for Evaluate arguments.
+    /// Adds a mutually exclusive argument group for Transform phase Evaluation operations.
+    /// Based on Operation Dependency Tree: count and count-by-source are mutually exclusive.
     ///
     /// # Examples
     ///
@@ -16,14 +18,14 @@ impl CommandBuilder for EvaluateArgGroupBuilder {
     /// let mut cmd = Command::new("test_command");
     /// EvaluateArgGroupBuilder::build(&mut cmd);
     ///
-    /// // Evaluate arguments like `count` cannot be used with other evaluate arguments like `count_by_source`.
-    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--count", "--count_by_source"]);
-    /// assert!(matches.is_err(), "The 'count' argument was used with 'count_by_source'.");
+    /// // Transform phase: Evaluation operations are mutually exclusive
+    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--count", "--count-by-source"]);
+    /// assert!(matches.is_err(), "Transform phase Evaluation operations are mutually exclusive.");
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.group(
-            ArgGroup::new("evaluate_arg_group")
-                .args(&["count", "count_by_source"]) // Evaluate arguments
+        *cmd = cmd.clone().group(
+            ArgGroup::new("transform_evaluation_group")
+                .args(&["count", "count-by-source"]) // Transform phase Evaluation operations
                 .multiple(false), // Ensure zero or one argument is allowed
         );
     }
@@ -46,10 +48,10 @@ mod tests {
     fn count_cannot_be_used_with_count_by_source() {
         let cmd = CMD.clone();
         let matches =
-            cmd.try_get_matches_from(vec!["test_command", "--count", "--count_by_source"]);
+            cmd.try_get_matches_from(vec!["test_command", "--count", "--count-by-source"]);
         assert!(
             matches.is_err(),
-            "The 'count' argument was used with 'count_by_source'."
+            "Transform phase: Evaluation operations are mutually exclusive."
         );
     }
 }

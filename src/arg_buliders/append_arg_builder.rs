@@ -33,7 +33,7 @@ impl CommandBuilder for AppendArgBuilder {
     /// );
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
+        *cmd = cmd.clone().arg(
             Arg::new("append")
                 .long("append")
                 .value_name("STRING_TO_APPEND")

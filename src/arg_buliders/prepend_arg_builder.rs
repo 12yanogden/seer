@@ -33,7 +33,7 @@ impl CommandBuilder for PrependArgBuilder {
     /// );
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
+        *cmd = cmd.clone().arg(
             Arg::new("prepend")
                 .long("prepend")
                 .value_name("STRING_TO_PREPEND")

@@ -34,7 +34,7 @@ impl CommandBuilder for FilesArgBuilder {
     /// );
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
+        *cmd = cmd.clone().arg(
             Arg::new("files")
                 .long("files")
                 .value_name("FILES")

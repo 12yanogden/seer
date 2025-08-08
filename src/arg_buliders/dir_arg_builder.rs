@@ -33,7 +33,7 @@ impl CommandBuilder for DirArgBuilder {
     /// );
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
+        *cmd = cmd.clone().arg(
             Arg::new("dir")
                 .long("dir")
                 .value_name("DIR_PATH")

@@ -36,7 +36,7 @@ impl CommandBuilder for TextArgBuilder {
     ///
     /// The `--text` argument requires a non-empty string value to be provided.
     fn build(cmd: &mut Command) {
-        cmd.arg(
+        *cmd = cmd.clone().arg(
             Arg::new("text")
                 .long("text")
                 .value_name("STRING_VALUE")

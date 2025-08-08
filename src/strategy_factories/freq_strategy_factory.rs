@@ -43,7 +43,7 @@ impl FrequencyStrategyFactory {
     pub fn make(inputs: &ArgMatches) -> Box<dyn FrequencyStrategy> {
         if let Some(nth) = inputs.get_one::<u64>("nth") {
             return Box::new(NthFrequencyStrategy::new(*nth as usize));
-        } else if let Some(every_nth) = inputs.get_one::<u64>("every_nth") {
+        } else if let Some(every_nth) = inputs.get_one::<u64>("every-nth") {
             return Box::new(EveryNthFrequencyStrategy::new(*every_nth as usize, 0));
         } else if inputs.get_flag("all") {
             return Box::new(AllFrequencyStrategy::new());
@@ -88,8 +88,8 @@ mod tests {
                     .action(clap::ArgAction::Set),
             )
             .arg(
-                Arg::new("every_nth")
-                    .long("every_nth")
+                Arg::new("every-nth")
+                    .long("every-nth")
                     .value_name("EVERY_NTH")
                     .value_parser(clap::value_parser!(u64))
                     .action(clap::ArgAction::Set),
@@ -111,7 +111,7 @@ mod tests {
     fn test_every_nth_frequency_strategy() {
         let cmd = get_command();
         let matches = cmd
-            .try_get_matches_from(vec!["test", "--every_nth", "2"])
+            .try_get_matches_from(vec!["test", "--every-nth", "2"])
             .unwrap();
         let strategy = FrequencyStrategyFactory::make(&matches);
         assert_eq!(strategy.strategy_type(), FrequencyStrategyType::EveryNth);

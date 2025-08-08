@@ -1,10 +1,13 @@
 use crate::handlers::build_command_handler::CommandBuilder;
 use clap::{ArgGroup, Command};
 
+/// Now handles Transform phase argument restrictions
 pub struct EditEvaluateArgGroupBuilder;
 
 impl CommandBuilder for EditEvaluateArgGroupBuilder {
-    /// Adds a mutually exclusive argument group for Edit and Evaluate arguments.
+    /// Adds argument group restrictions for Transform phase operations.
+    /// Based on Operation Dependency Tree: Edit operations (append, prepend, replace-with) 
+    /// are incompatible with Evaluation operations (count, count-by-source).
     ///
     /// # Examples
     ///
@@ -16,15 +19,15 @@ impl CommandBuilder for EditEvaluateArgGroupBuilder {
     /// let mut cmd = Command::new("test_command");
     /// EditEvaluateArgGroupBuilder::build(&mut cmd);
     ///
-    /// // Edit arguments like `replace_with` cannot be used with evaluate arguments like `--count`.
-    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--replace_with", "value", "--count"]);
-    /// assert!(matches.is_err(), "The 'count' argument was used with 'replace_with'.");
+    /// // Transform phase: Edit operations cannot be used with Evaluation operations
+    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--replace-with", "value", "--count"]);
+    /// assert!(matches.is_err(), "Edit and Evaluation Transform operations are incompatible.");
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.group(
-            ArgGroup::new("edit_evaluate_arg_group")
-                .args(&["append", "prepend", "replace_with"]) // Edit arguments
-                .conflicts_with("count, count_by_source") // Evaluate arguments
+        *cmd = cmd.clone().group(
+            ArgGroup::new("transform_edit_group")
+                .args(&["append", "prepend", "replace-with"]) // Edit Transform operations
+                .conflicts_with_all(["count", "count-by-source"]) // Evaluation Transform operations
                 .multiple(false),
         );
     }
@@ -50,7 +53,7 @@ mod tests {
             cmd.try_get_matches_from(vec!["test_command", "--append", "value", "--count"]);
         assert!(
             matches.is_err(),
-            "The 'append' argument was used with 'count'."
+            "Transform phase: Edit and Evaluation operations are incompatible."
         );
     }
 
@@ -61,7 +64,7 @@ mod tests {
             cmd.try_get_matches_from(vec!["test_command", "--prepend", "value", "--count"]);
         assert!(
             matches.is_err(),
-            "The 'prepend' argument was used with 'count'."
+            "Transform phase: Edit and Evaluation operations are incompatible."
         );
     }
 }

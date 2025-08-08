@@ -26,12 +26,12 @@ impl CommandBuilder for AllArgBuilder {
     /// let matches = cmd.try_get_matches_from(vec!["test_command", "--all"]).unwrap();
     /// assert!(matches.get_one::<bool>("all").copied().unwrap_or(false), "The 'all' argument did not return true.");
     /// ```
-    fn build(&mut cmd: Command) {
-        cmd.arg(
+    fn build(cmd: &mut Command) {
+        *cmd = cmd.clone().arg(
             Arg::new("all")
                 .long("all")
                 .help("Find all matches")
                 .action(clap::ArgAction::SetTrue),
-        )
+        );
     }
 }

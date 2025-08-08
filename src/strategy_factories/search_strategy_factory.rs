@@ -55,7 +55,7 @@ impl SearchStrategyFactory {
             let mut between_iter = between.into_iter();
             let from = between_iter.next().unwrap().clone();
             let to = between_iter.next().unwrap().clone();
-            let exclude_matches = inputs.get_flag("exclude_matches");
+            let exclude_matches = inputs.get_flag("exclude-matches");
             return Box::new(BetweenSearchStrategy::new(
                 from,
                 to,
@@ -98,8 +98,8 @@ mod tests {
                     .value_names(&["begin", "end"]),
             )
             .arg(
-                Arg::new("exclude_matches")
-                    .long("exclude_matches")
+                Arg::new("exclude-matches")
+                    .long("exclude-matches")
                     .action(clap::ArgAction::SetTrue),
             )
     }

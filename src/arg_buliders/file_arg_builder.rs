@@ -33,7 +33,7 @@ impl CommandBuilder for FileArgBuilder {
     /// );
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
+        *cmd = cmd.clone().arg(
             Arg::new("file")
                 .long("file")
                 .value_name("FILE_PATH")

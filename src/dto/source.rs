@@ -1,15 +1,16 @@
-pub struct Source<'a> {
-    name: &'a str,
-    text: &'a str,
+#[derive(Clone)]
+pub struct Source {
+    name: String,
+    text: String,
     hit_indices: Vec<usize>,
 }
 
-impl<'a> Source<'a> {
+impl Source {
     // Constructor for Source
-    pub fn new(name: &'a str, text: &'a str) -> Self {
+    pub fn new(name: &str, text: &str) -> Self {
         Self {
-            name,
-            text,
+            name: name.to_string(),
+            text: text.to_string(),
             hit_indices: Vec::new(),
         }
     }
@@ -25,13 +26,13 @@ impl<'a> Source<'a> {
     }
 
     // Sets the value string.
-    pub fn set_name(&mut self, name: &'a str) {
-        self.name = name;
+    pub fn set_name(&mut self, name: &str) {
+        self.name = name.to_string();
     }
 
     // Sets the text string.
-    pub fn set_text(&mut self, text: &'a str) {
-        self.text = text;
+    pub fn set_text(&mut self, text: &str) {
+        self.text = text.to_string();
     }
 
     // Get the hits for the source.

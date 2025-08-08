@@ -1,26 +1,25 @@
 use super::command_data::CommandData;
 use super::edit::Edit;
-use super::evaluation::Evaluation;
 use super::hit::Hit;
 use super::source::Source;
 use clap::ArgMatches;
 
-pub struct DTO<'a> {
+#[derive(Clone)]
+pub struct DTO {
     command_data: CommandData,
     inputs: Option<clap::ArgMatches>,
-    sources: Vec<Source<'a>>,
+    sources: Vec<Source>,
     hits: Vec<Hit>,
     edits: Vec<Edit>,
-    evalutation: Option<&'a Evaluation<'a>>,
 }
 
-impl<'a> DTO<'a> {
+impl DTO {
     // Constructor for DTO
-    pub fn new<'b>(
-        command_name: &'b str,
-        version: &'b str,
-        author: &'b str,
-        about: &'b str,
+    pub fn new(
+        command_name: &str,
+        version: &str,
+        author: &str,
+        about: &str,
     ) -> Self {
         Self {
             command_data: CommandData::new(command_name, version, author, about),
@@ -28,24 +27,31 @@ impl<'a> DTO<'a> {
             sources: Vec::new(),
             hits: Vec::new(),
             edits: Vec::new(),
-            evalutation: None,
         }
     }
 
     // Adders
 
     // Add a source to the DTO.
-    pub fn add_source(&mut self, name: &'a str, text: &'a str) {
+    pub fn add_source(&mut self, name: &str, text: &str) {
         let source = Source::new(name, text);
         self.sources.push(source);
     }
 
     // Add a hit to the DTO.
-    pub fn add_hit(&mut self, value: &'a str, position: usize, source: &'a mut Source<'a>) {
+    pub fn add_hit(&mut self, value: String, position: usize, source_index: usize) {
         let hit = Hit::new(value, position);
         self.hits.push(hit);
         let hit_index = self.hits.len() - 1;
-        source.add_hit_index(hit_index);
+        if source_index < self.sources.len() {
+            self.sources[source_index].add_hit_index(hit_index);
+        }
+    }
+
+    // Add an edit to the DTO.
+    pub fn add_edit(&mut self, position: usize, new_value: String) {
+        let edit = Edit::new(position, new_value);
+        self.edits.push(edit);
     }
 
     // Cloners
@@ -64,20 +70,16 @@ impl<'a> DTO<'a> {
         &self.inputs
     }
 
-    pub fn get_sources(&self) -> &Vec<Source<'a>> {
+    pub fn get_sources(&self) -> &Vec<Source> {
         &self.sources
     }
 
-    pub fn get_hits(&'a self) -> &'a Vec<Hit<'a>> {
+    pub fn get_hits(&self) -> &Vec<Hit> {
         &self.hits
     }
 
-    pub fn get_edits(&'a self) -> &'a Vec<Edit<'a>> {
+    pub fn get_edits(&self) -> &Vec<Edit> {
         &self.edits
-    }
-
-    pub fn get_evaluation(&'a self) -> Option<&'a Evaluation<'a>> {
-        self.evalutation
     }
 
     // Metadata getters

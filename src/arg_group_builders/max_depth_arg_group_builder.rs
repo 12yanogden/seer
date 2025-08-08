@@ -27,12 +27,9 @@ impl CommandBuilder for MaxDepthArgGroupBuilder {
     /// assert!(matches.is_ok(), "The 'dir' and 'max-depth' arguments were not accepted together.");
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.group(
-            ArgGroup::new("max_depth_arg_group")
-                .args(&["dir", "max-depth"])
-                .multiple(false)
-                .conflicts_with("max-depth"),
-        );
+        // max-depth requires dir to be meaningful
+        // This is handled by clap's requires mechanism in the arg builder, not here
+        // For now, this group builder doesn't add any restrictions
     }
 }
 

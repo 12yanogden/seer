@@ -33,7 +33,7 @@ impl CommandBuilder for NthArgBuilder {
     /// );
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
+        *cmd = cmd.clone().arg(
             Arg::new("nth")
                 .long("nth")
                 .value_name("NTH")

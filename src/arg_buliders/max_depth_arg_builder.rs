@@ -33,12 +33,13 @@ impl CommandBuilder for MaxDepthArgBuilder {
     /// );
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.arg(
+        *cmd = cmd.clone().arg(
             Arg::new("max-depth")
                 .long("max-depth")
                 .value_name("MAX_DEPTH")
                 .value_parser(clap::value_parser!(u64).range(0..))
-                .help("Limit the depth of recursion"),
+                .help("Limit the depth of recursion")
+                .requires("dir"),
         );
     }
 }

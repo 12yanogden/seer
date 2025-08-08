@@ -20,14 +20,14 @@ impl CommandBuilder for SearchArgGroupBuilder {
     /// let matches = cmd.try_get_matches_from(vec!["test_command"]);
     /// assert!(matches.is_err(), "No argument was provided, but at least one is required.");
     ///
-    /// // Search arguments like `find_between` cannot be used with other search arguments like `find_regex`.
-    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--find_between", "--find_regex"]);
-    /// assert!(matches.is_err(), "The 'find_between' argument was used with 'find_regex'.");
+    /// // Search arguments like `find-between` cannot be used with other search arguments like `find-regex`.
+    /// let matches = cmd.try_get_matches_from(vec!["test_command", "--find-between", "--find-regex"]);
+    /// assert!(matches.is_err(), "The 'find-between' argument was used with 'find-regex'.");
     /// ```
     fn build(cmd: &mut Command) {
-        cmd.group(
+        *cmd = cmd.clone().group(
             ArgGroup::new("search_arg_group")
-                .args(&["find_between", "find_regex", "find_string"]) // Search arguments
+                .args(&["find-between", "find-regex", "find-string"]) // Search arguments
                 .multiple(false) // Ensure zero or one argument is allowed
                 .required(true), // Ensure at least one argument is required
         );
@@ -51,10 +51,10 @@ mod tests {
     fn find_between_cannot_be_used_with_find_regex() {
         let cmd = CMD.clone();
         let matches =
-            cmd.try_get_matches_from(vec!["test_command", "--find_between", "--find_regex"]);
+            cmd.try_get_matches_from(vec!["test_command", "--find-between", "--find-regex"]);
         assert!(
             matches.is_err(),
-            "The 'find_between' argument was used with 'find_regex'."
+            "The 'find-between' argument was used with 'find-regex'."
         );
     }
 
@@ -62,10 +62,10 @@ mod tests {
     fn find_regex_cannot_be_used_with_find_string() {
         let cmd = CMD.clone();
         let matches =
-            cmd.try_get_matches_from(vec!["test_command", "--find_regex", "--find_string"]);
+            cmd.try_get_matches_from(vec!["test_command", "--find-regex", "--find-string"]);
         assert!(
             matches.is_err(),
-            "The 'find_regex' argument was used with 'find_string'."
+            "The 'find-regex' argument was used with 'find-string'."
         );
     }
 }

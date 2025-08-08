@@ -5,4 +5,5 @@ pub mod get_sources_handler;
 pub mod handler;
 pub mod print_handler;
 pub mod search_handler;
+pub mod simple_search_handler;
 pub mod validate_handler;

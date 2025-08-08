@@ -14,7 +14,7 @@ impl OutputStrategy for StdoutStrategy {
     fn output(&self, dto: &DTO) -> Result<(), Box<dyn std::error::Error>> {
         let edits = dto.get_edits();
         let hits = dto.get_hits();
-        
+
         if !edits.is_empty() {
             // Output edited text
             for edit in edits {
@@ -31,7 +31,7 @@ impl OutputStrategy for StdoutStrategy {
                 println!("{}", source.get_text());
             }
         }
-        
+
         Ok(())
     }
 }
@@ -40,18 +40,16 @@ impl OutputStrategy for StdoutStrategy {
 mod tests {
     use super::*;
     use crate::dto::dto::DTO;
-    use crate::dto::edit::Edit;
-    use crate::dto::hit::Hit;
 
     #[test]
     fn test_stdout_strategy_with_edits() {
         let mut dto = DTO::new("test", "1.0", "author", "description");
         dto.add_source("test_source", "test content");
         dto.add_edit(0, "modified content".to_string());
-        
+
         let strategy = StdoutStrategy::new();
         let result = strategy.output(&dto);
-        
+
         assert!(result.is_ok());
     }
 
@@ -60,10 +58,10 @@ mod tests {
         let mut dto = DTO::new("test", "1.0", "author", "description");
         dto.add_source("test_source", "test content");
         dto.add_hit("test".to_string(), 0, 0);
-        
+
         let strategy = StdoutStrategy::new();
         let result = strategy.output(&dto);
-        
+
         assert!(result.is_ok());
     }
 }
